@@ -1,0 +1,52 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Myshopee</title>
+    <link rel="stylesheet" href="{% static 'about.css' %}">
+</head>
+<body>
+    <div class="container">
+        <div class="image-section">
+            <img src="{% static 'img/about_photo.png' %}" alt="Back of shirt with international cities" />
+        </div>
+        <div class="text-section">
+            <h1>About Myshopee</h1>
+            <p>
+                MyShopee is your one-stop destination for everything you need — from everyday essentials to the latest trends. Whether you're shopping for fashion, electronics, home goods, beauty, or more, we bring it all together under one roof.
+            </p>
+            <p>
+                We pride ourselves on offering a carefully curated selection of products across a wide range of categories. From global sneaker giants like Nike, Adidas, and Puma, to streetwear favorites like Comme des Garçons, Stüssy, and Carhartt WIP, our fashion lineup is built to keep you one step ahead in both style and performance.
+            </p>
+            <p>
+                At MyShopee, we believe that shopping should be more than just a transaction — it should be an experience. That’s why we work hard to create a platform that’s not only easy to navigate, but also filled with exciting finds, helpful recommendations, and exclusive deals you won’t see anywhere else.
+                <br><br>
+                
+                But MyShopee is more than just fashion. We offer a diverse catalog that includes: <br>
+                📱 Latest smartphones and gadgets <br>
+
+                🧴 Beauty and personal care products <br>
+
+                🛋️ Home essentials and décor <br>
+
+                🧸 Kids and baby products <br>
+
+                💻 Laptops and tech accessories <br>
+
+                ⚽ Sports and fitness gear
+            </p>
+            <p>
+                Our platform also features exclusive collections, limited-edition collaborations, and hard-to-find items that cater to trendsetters and tech-savvy shoppers alike.
+                At MyShopee, we’re constantly expanding and evolving. Our mission is to deliver a seamless, exciting, and reliable shopping experience — ensuring you always find what you're looking for, and then some.
+            </p>
+            <p>
+                Join us as we bring the world’s best products right to your doorstep. Shop smart. Shop easy. Shop MyShopee.
+            </p>
+            <a href="{% url 'home' %}"><button>Shop Now!</button></a>
+        </div>
+        
+    </div>
+</body>
+</html>

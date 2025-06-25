@@ -1,0 +1,58 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login | Myshopee</title>
+  <link rel="stylesheet" type="text/css" href="{% static 'login_st.css' %}">
+  <link rel="stylesheet" type="text/css" href="{% static 'chatbot.css' %}">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <header id="header">
+    <marquee behavior="scroll" direction="left" scrollamount="10" style="font-size: 60px;">✨ Welcome to <strong>Myshopee</strong> — Your one-stop destination for everything you need! ✨</marquee>
+  </header>
+
+  <main class="login-container">
+    <form method="POST" action="" class="login-form">
+      {% csrf_token %}
+      <h2>Login to Myshopee</h2>
+
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" required placeholder="Enter Username">
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required placeholder="Enter Password">
+      </div>
+
+      <button type="submit">Login</button>
+
+      {% if messages %}
+        <ul class="messages">
+          {% for message in messages %}
+            <li>{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+
+      <p class="footer-text">Don't have an account? <a href="{% url 'signup' %}">Sign up</a></p>
+    </form>
+  </main>
+
+  <button id="chatbot-button" onclick="toggleChatbot()">💬</button>
+
+  <div id="chatbot-window" style="display: none;">
+  <div id="chatbot-header">
+    Chat with Myshopee
+    <span id="chatbot-close" onclick="toggleChatbot()">×</span>
+  </div>
+  <div id="chatbot-content"></div>
+</div>
+
+  <script src="{% static 'chatbot_login.js' %}"></script>
+</body>
+</html>

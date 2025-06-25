@@ -1,0 +1,123 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Your Cart | MyShopee</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'cart.css' %}">
+  <style>
+    .card-img-top { max-height: 120px; object-fit: contain; }
+    .price-card { border: 1px solid #ddd; padding: 20px; border-radius: 12px; background: #f8f9fa; }
+  </style>
+</head>
+<body>
+
+<div class="container py-4">
+  <h3 class="mb-4">🛒 Your Cart</h3>
+
+  {% if cart_items %}
+  <div class="row">
+    <!-- Cart Items Section -->
+    <div class="col-lg-8">
+      {% for item in cart_items %}
+      <div class="card mb-3 shadow-sm">
+        <div class="row g-0 align-items-center">
+          <div class="col-md-3 text-center p-2">
+            <img src="{{ item.product.image.url }}" class="card-img-top p-2" alt="{{ item.product.name }}">
+          </div>
+          <div class="col-md-9">
+            <div class="card-body">
+              <h5 class="card-title">{{ item.product.name }}</h5>
+              <h6 class="text-success">₹{{ item.product.price }}</h6>
+              <div class="d-flex align-items-center gap-2 my-2">
+                <button onclick="updateQuantity({{ item.product.id }}, 'decrease')" class="btn btn-outline-secondary btn-sm">−</button>
+                <span id="qty-{{ item.product.id }}">{{ item.quantity }}</span>
+                <button onclick="updateQuantity({{ item.product.id }}, 'increase')" class="btn btn-outline-secondary btn-sm">+</button>
+              </div>
+              <p class="mb-0">Subtotal: ₹<span id="subtotal-{{ item.product.id }}">{{ item.subtotal }}</span></p>
+              <a href="{% url 'remove_from_cart' item.product.id %}" class="btn btn-sm btn-danger mt-2">Remove</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+      <div class="d-flex justify-content-between">
+        <a href="{% url 'clear_cart' %}" class="btn btn-outline-danger">Clear Cart</a>
+        <a href="{% url 'home' %}" class="btn btn-primary">Continue Shopping</a>
+      </div>
+    </div>
+
+    <!-- Price Details Sidebar -->
+    <div class="col-lg-4">
+  <div class="price-card shadow-sm">
+    <h5 class="mb-3">PRICE DETAILS</h5>
+    <div class="d-flex justify-content-between">
+      <span>Price ({{ cart_count }} items)</span>
+      <strong>₹ <span id="total-price">{{ total_price }} </span></strong>
+    </div>
+    <div class="d-flex justify-content-between">
+      <span>Shipping Charges</span>
+      <strong>₹{{ shipping_charge }}</strong>
+    </div>
+    <hr>
+    <div class="d-flex justify-content-between">
+      <strong>Total Amount</strong>
+      <strong> <span id="final-amount">₹{{ final_amount }} </span></strong>
+    </div>
+    <a href="#" class="btn btn-warning w-100 mt-3">Place Order</a>
+  </div>
+</div>
+
+  {% else %}
+  <div class="alert alert-info mt-4" role="alert">
+    🛒 Your cart is currently empty!
+  </div>
+  <a href="{% url 'home' %}" class="btn btn-primary">Start Shopping</a>
+  {% endif %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+function updateQuantity(productId, action) {
+    fetch(`/cart/${action}_quantity/${productId}/`, {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById(`qty-${productId}`).innerText = data.quantity;
+            document.getElementById(`subtotal-${productId}`).innerText = data.subtotal;
+            document.getElementById('total-price').innerText = data.total_price;
+            document.getElementById('final-amount').innerText = data.final_amount;
+        }
+    });
+}
+document.querySelector('.btn-warning').addEventListener('click', function(e){
+  e.preventDefault();
+  fetch('/cart/place_order/', {
+    method: 'POST',
+    headers: {
+      'X-CSRFToken': '{{ csrf_token }}',
+      'X-Requested-With': 'XMLHttpRequest'
+    }
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      alert(`✅ Order placed successfully!\nOrder No: ${data.order_number}\nExpected Delivery: ${data.delivery_date}`);
+      window.location.href = "{% url 'home' %}";
+    } else {
+      alert(data.message);
+    }
+  });
+});
+
+</script>
+
+</body>
+</html>

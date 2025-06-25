@@ -1,0 +1,32 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Verify OTP | Myshopee</title>
+  <link rel="stylesheet" href="{% static 'login_st.css' %}">
+</head>
+<body>
+  <main class="login-container">
+    <form method="POST" class="login-form">
+      {% csrf_token %}
+      <h2>Verify Email OTP</h2>
+
+      <div class="form-group">
+        <label for="otp">Enter the 6-digit OTP sent to your email</label>
+        <input type="text" name="otp" required placeholder="Enter OTP">
+      </div>
+
+      <button type="submit">Verify</button>
+
+      {% if messages %}
+        <ul class="messages">
+          {% for message in messages %}
+            <li>{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </form>
+  </main>
+</body>
+</html>

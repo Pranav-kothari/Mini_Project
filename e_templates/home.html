@@ -1,0 +1,207 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Home | MyShopee</title>
+  <link rel="icon" href="{% static 'img/favicon.ico' %}" type="image/x-icon">
+  <link rel="stylesheet" type="text/css" href="{% static 'home_st.css' %}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.carousel.min.css">
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+  <link rel="stylesheet" type="text/css" href="{% static 'chatbot.css' %}">
+  
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"></script>
+
+  <script>
+  $(function () {
+    $("#search-input").autocomplete({
+      source: "/autocomplete/"
+    });
+  });
+  </script>
+</head>
+
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="logo">MyShopee</div>
+    <form method="get" action="" class="filter-form">
+      <select name="category" onchange="this.form.submit()">
+        <option value="">All Categories</option>
+        {% for category in categories %}option
+            <option value="{{ category.id }}" {% if selected_category == category.id %}selected{% endif %}>
+            {{ category.name }}
+          </option>
+        {% endfor %}
+      </select>
+
+      <input type="text" id="search-input" name="search" placeholder="Search products..." value="{{ search_query }}">
+      <button type="submit">Search</button>
+    </form>
+
+    <ul class="nav-links">
+      <li><a href="{% url 'home' %}">Home</a></li>
+      <li><a href="#container">Products</a></li>
+      <li><a href="{% url 'about' %}">About</a></li>
+      <li><a href="#">Contact</a></li>
+      <li>
+        <a href="{% url 'cart_detail' %}" class="cart-link">
+          <div class="cart-icon-container">
+            <img src="{% static 'img/empty-cart.png' %}" alt="Cart">
+            <span class="cart-count-badge">{{ cart_item_count }}</span>
+          </div>
+          <span class="cart-label">Cart</span>
+        </a>
+      </li>
+
+      {% if request.user.is_authenticated %}
+        {% if request.user.profile.role == 'seller' %}
+          <li><a href="{% url 'seller_dashboard' %}">Seller Dashboard</a></li>
+        {% endif %}
+        <li><a href="{% url 'logout' %}">Logout</a></li>
+      {% else %}
+        <li><a href="{% url 'login' %}">Login</a></li>
+        <li><a href="{% url 'signup' %}">Sign Up</a></li>
+      {% endif %}
+    </ul>
+  </nav>
+
+  {% if not search_query and not selected_category %}
+  <div class="carousel-container">
+    <div class="owl-carousel">
+      <div><img src="{% static 'img/Carousel_image1.jpg' %}" alt="Promotional Banner"></div>
+      <div><img src="{% static 'img/banner1.jpg' %}" alt="Product Deals"></div>
+      <div><img src="{% static 'img/banner2.jpg' %}" alt="New Arrivals"></div>
+      <div><img src="{% static 'img/banner3.jpg' %}" alt="Festive Offers"></div>
+    </div>
+  </div>
+  {% endif %}
+
+  <script>
+  $(document).ready(function(){
+    $('.owl-carousel').owlCarousel({
+      loop:true,
+      margin:10,
+      nav:true,
+      autoplay:true,
+      autoplayTimeout:3000,
+      responsive:{
+        0:{ items:1 },
+        600:{ items:1 },
+        1000:{ items:1 }
+      }
+    });
+  });
+  </script>
+
+  <div class="container" id="container">
+    <h1>Featured Products</h1>
+
+{% if subcategories %}
+<div class="subcategory-filter">
+  {% for subcategory in subcategories %}
+    <a href="?category={{ selected_category }}&subcategory={{ subcategory.id }}" class="{% if selected_subcategory == subcategory.id %}active{% endif %}">
+      {{ subcategory.name }}
+    </a>
+  {% endfor %}
+</div>
+{% endif %}
+
+    <div class="product-grid">
+      {% for product in products %}
+      <div class="product-card">
+        <h3>{{ product.name }}</h3>
+        <p class="price">&#8377 {{ product.price }}</p>
+        {% if product.image %}
+          <img src="{{ product.image.url }}" alt="{{ product.name }}">
+        {% else %}
+          <img src="{% static 'img/default-product.png' %}" alt="No Image Available">
+        {% endif %}
+        <a href="{% url 'product_detail' product.id %}" class="btn">View Details</a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="about" id="about">
+    <div class="about-columns">
+      <div class="about-col">
+        <h3>Get to Know Us</h3>
+        <ul>
+          <li><a href="#">About Us</a></li>
+          <li><a href="#">Careers</a></li>
+          <li><a href="#">Press Releases</a></li>
+          <li><a href="#">Our Science</a></li>
+        </ul>
+      </div>
+
+      <div class="about-col">
+        <h3>Connect with Us</h3>
+        <ul>
+          <li><a href="https://www.linkedin.com/in/pranav-kothari-b30ba1267" target="_blank">LinkedIn</a></li>
+          <li><a href="https://x.com/thepranav13?t=nMmwAru13lKgmI9ytan9Zg&s=08" target="_blank">Twitter</a></li>
+          <li><a href="#" target="_blank">Instagram</a></li>
+        </ul>
+      </div>
+
+      <div class="about-col">
+        <h3>Make Money with Us</h3>
+        <ul>
+          <li><a href="#">Sell on Platform</a></li>
+          <li><a href="#">Become an Affiliate</a></li>
+          <li><a href="#">Advertise Products</a></li>
+          <li><a href="#">Self-Publish</a></li>
+        </ul>
+      </div>
+
+      <div class="about-col">
+        <h3>Let Us Help You</h3>
+        <ul>
+          <li><a href="#">Your Account</a></li>
+          <li><a href="#">Returns Centre</a></li>
+          <li><a href="#">Help</a></li>
+          <li><a href="#">Download App</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="about-footer">
+      <p>© 2025 MyShopee</p>
+      <div class="lang-country">
+        <select>
+          <option>English</option>
+          <option>Hindi</option>
+        </select>
+        <select>
+          <option>India</option>
+          <option>US</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+{% block content %}
+  {% endblock %}
+
+<!-- Chatbot Button -->
+<div id="chatbot-button" onclick="toggleChatbot()">
+  <img src="{% static 'img/chat-icon.png' %}" alt="Chat" />
+</div>
+
+<!-- Chatbot Window -->
+<div id="chatbot-window">
+  <div id="chatbot-header">
+    <span>MyShopee Assistant</span>
+    <button onclick="toggleChatbot()">×</button>
+  </div>
+  <div id="chatbot-content"></div>
+</div>
+
+<!-- Include chatbot scripts -->
+<script src="{% static 'chatbot.js' %}"></script>
+
+</body>
+</html>

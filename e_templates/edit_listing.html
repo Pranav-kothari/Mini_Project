@@ -1,0 +1,14 @@
+<h2>Edit Listing</h2>
+
+<form method="POST">
+  {% csrf_token %}
+  <label>Price:</label>
+  <input type="number" name="price" value="{{ listing.price }}" required><br>
+  
+  <label>Stock:</label>
+  <input type="number" name="stock" value="{{ listing.stock }}" required><br>
+  
+  <button type="submit">Save Changes</button>
+</form>
+
+<a href="{% url 'seller_dashboard' %}">Cancel</a>

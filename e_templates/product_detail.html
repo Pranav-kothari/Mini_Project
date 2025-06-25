@@ -1,0 +1,357 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ product.name }}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      margin: 0;
+      background-color: #f9f9f9;
+    }
+
+    .navbar {
+      background-color: #222;
+      color: #fff;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .navbar a {
+      color: #fff;
+      text-decoration: none;
+      margin-left: 20px;
+      font-weight: 600;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 3rem auto;
+      display: flex;
+      gap: 3rem;
+      padding: 0 2rem;
+    }
+
+    .product-images {
+      flex: 1;
+      position: sticky;
+      top: 80px;
+      align-self: flex-start;
+    }
+
+    .product-images img {
+      width: 100%;
+      border-radius: 10px;
+    }
+
+    .thumbnails {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .thumbnails img {
+      width: 70px;
+      border-radius: 6px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: border 0.3s;
+    }
+
+    .thumbnails img:hover {
+      border: 2px solid #e63946;
+    }
+
+    .product-details {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+
+    .product-details h1 {
+      font-size: 2.2rem;
+      margin: 0 0 5px 0;
+    }
+
+    .price {
+      font-size: 1.8rem;
+      color: #e63946;
+      font-weight: 600;
+      margin-bottom:10px ;
+    }
+
+    .desc {
+      font-size: 0.95rem;
+      color: #444;
+      line-height: 1.5;
+      list-style-type: disc;
+      padding-left: 18px;
+      margin: 0 0 6px 0;
+      max-height: 220px;
+      overflow-y: auto;
+    }
+
+    .desc li {
+      margin-bottom: 0.5rem;
+    }
+
+    /* .desc::after {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      height: 30px;
+      width: 100%;
+      background: linear-gradient(to top, #f9f9f9, transparent);
+    } */
+
+    .action-buttons {
+      display: flex;
+      gap: 1rem;
+    }
+
+    button, .quantity-input {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    .buy-btn {
+      background-color: #222;
+      color: #fff;
+    }
+
+    .cart-btn {
+      background-color: #e63946;
+      color: #fff;
+    }
+
+    .quantity-input {
+      border: 1px solid #ccc;
+      width: 70px;
+      text-align: center;
+    }
+
+    @media(max-width: 768px) {
+      .container {
+        flex-direction: column;
+      }
+    }
+    .toast {
+  position: fixed;
+  top: 20px;
+  right: -350px;
+  background-color: #222;
+  color: #fff;
+  padding: 16px 24px;
+  border-radius: 8px;
+  min-width: 300px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 9999;
+  transition: right 0.5s ease;
+}
+
+.toast.show {
+  right: 20px;
+}
+
+.toast .bar {
+  height: 5px;
+  background-color: #e63946;
+  border-radius: 4px;
+  animation: shrink 3s linear forwards;
+}
+
+@keyframes shrink {
+  from { width: 100%; }
+  to { width: 0%; }
+}
+.product-details h1 {
+  font-size: 2.2rem;
+  margin: 0 0 10px 0;
+}
+
+.price {
+  font-size: 1.8rem;
+  color: #e63946;
+  font-weight: 600;
+}
+
+.desc-title {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #333;
+}
+
+.desc {
+  font-size: 1rem;
+  color: #555;
+  line-height: 1.6;
+  list-style-type: disc;
+  padding-left: 20px;
+  margin: 0 0 10px 0; /* prevent extra space after ul */
+}
+
+.desc li {
+  margin-bottom: 0.5rem;
+}
+.rating {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.star {
+  font-size: 1.5rem;
+  font-family: sans-serif;
+  font-weight: bold;
+}
+
+.star.filled {
+  color: #FFD700;
+  text-shadow: 0 0 4px #FFD700;
+}
+
+.star.half {
+  color: #FFD700;
+  opacity: 0.5;
+}
+
+.star.empty {
+  color: #ccc;
+}
+
+.rating-value {
+  font-size: 0.95rem;
+  color: #555;
+}
+
+
+
+
+  </style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="logo" style="color: red; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-weight: bold; font-size: 25px;">MyShopee</div>
+    <div>
+
+      <a href="{% url 'home' %}">Home</a>
+      <a href="">Buy</a>
+      <a href="{% url 'cart_detail' %}">Cart</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="product-images">
+      <img id="mainImage" src="{{ product.image.url }}" alt="{{ product.name }}">
+      <div class="thumbnails">
+        <img src="{{ product.image.url }}" onclick="document.getElementById('mainImage').src=this.src">
+        <img src="{{ product.image.url }}" onclick="document.getElementById('mainImage').src=this.src">
+        <img src="{{ product.image.url }}" onclick="document.getElementById('mainImage').src=this.src">
+      </div>
+    </div>
+
+    <div class="product-details">
+      <h1>{{ product.name }}</h1>
+<div class="rating">
+  {% for _ in "12345"|make_list %}
+    {% if product.rating >= forloop.counter %}
+      <span class="star filled">★</span>
+    {% elif product.rating >= forloop.counter|add:"-0.5" %}
+      <span class="star half">★</span>
+    {% else %}
+      <span class="star empty">★</span>
+    {% endif %}
+  {% endfor %}
+  <span class="rating-value">({{ product.rating }}/5)</span>
+</div>
+
+
+      <div class="price">₹{{ product.price }}</div>
+      <h2 class="desc-title">Description:</h2> 
+      <ul class="desc">
+        {% for line in product.description.splitlines %}
+          {% if line %}
+            <li>{{ line }}</li>
+          {% endif %}
+        {% endfor %}
+      </ul>
+
+      <div class="action-buttons">
+        <button class="buy-btn">Buy Now</button>
+        <form method="post" action="{% url 'add_to_cart' product.id %}">
+          {% csrf_token %}
+          <input type="number" name="quantity" value="1" min="1" class="quantity-input">
+          <button type="submit" class="cart-btn">Add to Cart 🛒</button>
+        </form>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="toast" class="toast">
+  <div>✅ Added to Cart!</div>
+  <div class="bar"></div>
+</div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+  const form = document.querySelector("form");
+  const cartBtn = form.querySelector(".cart-btn");
+  const quantityInput = form.querySelector(".quantity-input");
+  const toast = document.getElementById("toast");
+  const toastMessage = toast.querySelector("div:first-child");
+
+  cartBtn.addEventListener("click", function(e) {
+    e.preventDefault();
+
+    const quantity = parseInt(quantityInput.value) || 1;
+    const url = form.action;
+    const csrfToken = form.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    fetch(url, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': csrfToken,
+        'X-Requested-With': 'XMLHttpRequest',
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: `quantity=${quantity}`
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        toastMessage.textContent = `✅ ${quantity} item${quantity > 1 ? 's' : ''} added to cart!`;
+        toast.classList.add("show");
+        setTimeout(() => toast.classList.remove("show"), 3000);
+      } else {
+        toastMessage.textContent = "❌ Error adding to cart.";
+        toast.classList.add("show");
+        setTimeout(() => toast.classList.remove("show"), 3000);
+      }
+    })
+    .catch(error => {
+      console.error(error);
+      toastMessage.textContent = "❌ Error adding to cart.";
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 3000);
+    });
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,57 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Signup | Myshopee</title>
+  <link rel="stylesheet" href="{% static 'login_st.css' %}">
+</head>
+<body>
+  <main class="login-container">
+    <form method="POST" class="login-form">
+      {% csrf_token %}
+      <h2>Create an Account</h2>
+
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" name="username" required placeholder="Choose a username">
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" name="email" required placeholder="Enter your email">
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" name="password" required placeholder="Create a password">
+      </div>
+
+      <div class="form-group">
+        <label for="confirm_password">Confirm Password</label>
+        <input type="password" name="confirm_password" required placeholder="Re-enter your password">
+      </div>
+      
+      <div class="form-group">
+        <label for="role">Register as:</label>
+        <select id="role" name="role" required>
+            <option value="buyer">Buyer</option>
+            <option value="seller">Seller</option>
+        </select>
+      </div>
+
+      <button type="submit">Sign Up</button>
+
+      {% if messages %}
+        <ul class="messages">
+          {% for message in messages %}
+            <li>{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+
+      <p class="footer-text">Already have an account? <a href="{% url 'login' %}">Login</a></p>
+    </form>
+  </main>
+</body>
+</html>

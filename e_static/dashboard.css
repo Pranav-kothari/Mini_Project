@@ -1,0 +1,89 @@
+body {
+  font-family: 'Poppins', sans-serif;
+  background: linear-gradient(135deg, #f8f9fb, #eef1f5);
+  color: #222;
+}
+
+.container {
+  max-width: 1300px;
+}
+
+h2, h4 {
+  font-weight: 600;
+  color: #222;
+}
+
+.stat-card {
+  padding: 24px;
+  background: linear-gradient(135deg, #ffffff, #f1f3f6);
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 35px rgba(0,0,0,0.12);
+}
+
+.stat-card h5 {
+  font-size: 16px;
+  color: #555;
+  margin-bottom: 10px;
+}
+
+.stat-card p {
+  font-size: 30px;
+  font-weight: 700;
+  color: #111;
+}
+
+.table {
+  background: #ffffff;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.06);
+}
+
+.table thead {
+  background: linear-gradient(135deg, #6f42c1, #8e44ad);
+  color: #fff;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+  background-color: #f8f9fc;
+}
+
+.table-hover tbody tr:hover {
+  background-color: #f0f2f5;
+}
+
+.btn {
+  padding: 10px 18px;
+  border-radius: 10px;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #6f42c1, #8e44ad);
+  color: #fff;
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, #e63946, #d62828);
+  color: #fff;
+}
+
+.btn:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.dashboard h1, .dashboard h2 {
+  font-weight: 700;
+}
+
