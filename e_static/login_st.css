@@ -150,3 +150,32 @@ ul.messages li {
 .footer-text a:hover {
     text-decoration: underline;
 }
+
+.role-buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.role-button {
+    flex: 1;
+    padding: 12px;
+    background-color: #007bff;
+    color: white;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: 0.3s;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+}
+
+.role-button:hover {
+    background-color: #0056b3;
+}
+
+.role-button.active {
+    background-color: #FF4500;
+}
+

@@ -2,7 +2,7 @@ from django.contrib import admin
 from .models import (
     Product, Category, Profile, Seller, 
     ProductListing, CartItem, Order, 
-    OrderItem, Subcategory
+    OrderItem, Subcategory,Address
 )
 from .models import ChatbotLog
 
@@ -15,6 +15,7 @@ admin.site.register(CartItem)
 admin.site.register(Order)
 admin.site.register(OrderItem)
 admin.site.register(Subcategory)
+admin.site.register(Address)
 
 @admin.register(ProductListing)
 class ProductListingAdmin(admin.ModelAdmin):

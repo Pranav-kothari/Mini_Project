@@ -15,7 +15,7 @@ from .decorators import seller_required
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from .forms import ProductForm
-from .models import Seller, ProductListing, Product,Subcategory
+from .models import Seller, ProductListing, Product,Subcategory,Address
 import random
 from .models import CartItem, Order, OrderItem
 from django.utils import timezone
@@ -23,6 +23,8 @@ from datetime import timedelta
 from django.db.models import Sum, Count
 from django.db.models import F, Sum, FloatField
 from django.core.mail import send_mail
+from .forms import AddressForm
+from .models import Address
 
 
 
@@ -248,13 +250,15 @@ def cart_detail(request):
     shipping_charge = 80 if cart_items else 0
     final_amount = total_price + shipping_charge
     cart_count = cart_items.count()
-
+    
+    addresses = Address.objects.filter(user=request.user)
     context = {
         'cart_items': cart_items,
         'total_price': total_price,
         'shipping_charge': shipping_charge,
         'final_amount': final_amount,
         'cart_count': cart_count,
+        'addresses': addresses, 
     }
     return render(request, 'cart_detail.html', context)
 
@@ -423,45 +427,71 @@ def delete_listing(request, listing_id):
 def generate_order_number():
     return 'ORD' + str(random.randint(10000, 99999))
 
+from django.http import JsonResponse
+import traceback
+
 def place_order(request):
     if request.method == 'POST':
-        cart_items = CartItem.objects.filter(user=request.user)
-        if not cart_items.exists():
-            return JsonResponse({'success': False, 'message': 'Cart is empty!'})
+        try:
+            data = request.POST
 
-        total_price = 0
-        order = Order.objects.create(
-            user=request.user,
-            order_number=generate_order_number(),
-            total_price=0,  # temp
-            delivery_date=timezone.now() + timedelta(days=4)
-        )
+            address_id = data.get('address_id')
+            if address_id:
+                address = get_object_or_404(Address, id=address_id, user=request.user)
+            else:
+                address = Address.objects.create(
+                    user=request.user,
+                    full_name=data.get('full_name'),
+                    phone_number=data.get('phone_number'),
+                    address_line_1=data.get('address_line_1'),
+                    city=data.get('city'),
+                    state=data.get('state'),
+                    pincode=data.get('pincode'),
+                    is_default=True
+                )
 
-        for item in cart_items:
-            subtotal = item.product.price * item.quantity
-            total_price += subtotal
+            cart_items = CartItem.objects.filter(user=request.user)
+            if not cart_items.exists():
+                return JsonResponse({'success': False, 'message': 'Cart is empty!'})
 
-            listing = ProductListing.objects.filter(product=item.product,is_approved=True).first()
-
-            OrderItem.objects.create(
-                order=order,
-                product=item.product,
-                listing=listing,
-                quantity=item.quantity,
-                price=item.product.price
+            total_price = 0
+            order = Order.objects.create(
+                user=request.user,
+                order_number=generate_order_number(),
+                total_price=0,
+                delivery_date=timezone.now() + timedelta(days=4),
+                address=address
             )
 
-        order.total_price = total_price
-        order.save()
+            for item in cart_items:
+                subtotal = item.product.price * item.quantity
+                total_price += subtotal
 
-        # Clear cart after order
-        cart_items.delete()
+                listing = ProductListing.objects.filter(product=item.product, is_approved=True).first()
 
-        return JsonResponse({
-            'success': True,
-            'order_number': order.order_number,
-            'delivery_date': order.delivery_date.strftime('%d %b %Y')
-        })
+                OrderItem.objects.create(
+                    order=order,
+                    product=item.product,
+                    listing=listing,
+                    quantity=item.quantity,
+                    price=item.product.price
+                )
+
+            order.total_price = total_price
+            order.save()
+
+            cart_items.delete()
+
+            return JsonResponse({
+                'success': True,
+                'order_number': order.order_number,
+                'delivery_date': order.delivery_date.strftime('%d %b %Y')
+            })
+
+        except Exception as e:
+            print("Error in placing order:", e)
+            traceback.print_exc()
+            return JsonResponse({'success': False, 'message': str(e)})
 
     return JsonResponse({'success': False, 'message': 'Invalid request'})
 
@@ -524,3 +554,17 @@ def log_chat_message(request):
             user_agent=request.META.get('HTTP_USER_AGENT')
         )
         return JsonResponse({'status': 'success'})
+    
+@login_required
+def add_address(request):
+    if request.method == 'POST':
+        form = AddressForm(request.POST)
+        if form.is_valid():
+            address = form.save(commit=False)
+            address.user = request.user
+            address.save()
+            return redirect('cart_detail')  # or 'checkout' if you're building that
+    else:
+        form = AddressForm()
+    
+    return render(request, 'add_address.html', {'form': form})

@@ -33,12 +33,14 @@
       </div>
       
       <div class="form-group">
-        <label for="role">Register as:</label>
-        <select id="role" name="role" required>
-            <option value="buyer">Buyer</option>
-            <option value="seller">Seller</option>
-        </select>
+        <label>Register as:</label>
+        <div class="role-buttons">
+            <button type="button" class="role-button active" data-value="buyer">Buyer</button>
+            <button type="button" class="role-button" data-value="seller">Seller</button>
+        </div>
+        <input type="hidden" id="role" name="role" value="buyer" required>
       </div>
+
 
       <button type="submit">Sign Up</button>
 
@@ -53,5 +55,19 @@
       <p class="footer-text">Already have an account? <a href="{% url 'login' %}">Login</a></p>
     </form>
   </main>
+
+  <script>
+  const roleButtons = document.querySelectorAll('.role-button');
+  const roleInput = document.getElementById('role');
+
+  roleButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      roleButtons.forEach(btn => btn.classList.remove('active'));
+      button.classList.add('active');
+      roleInput.value = button.getAttribute('data-value');
+    });
+  });
+</script>
+
 </body>
 </html>

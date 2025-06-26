@@ -34,6 +34,5 @@ urlpatterns = [
     path('api/products/<int:subcategory_id>/', views.get_products, name='get_products'),
     path('api/price_range/<int:subcategory_id>/', views.get_price_range, name='get_price_range'),
     path('api/log_message/', log_chat_message, name='log_message'),
-
-
+    path('add-address/', views.add_address, name='add_address'),
 ]

@@ -82,6 +82,24 @@ def get_delivery_date():
     return timezone.now() + timedelta(days=4)
 
 
+class Address(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='addresses')
+    full_name = models.CharField(max_length=255)
+    phone_number = models.CharField(max_length=15)
+    address_line_1 = models.CharField(max_length=255)
+    address_line_2 = models.CharField(max_length=255, blank=True)
+    city = models.CharField(max_length=100)
+    state = models.CharField(max_length=100)
+    pincode = models.CharField(max_length=10)
+    country = models.CharField(max_length=100, default='India')
+    is_default = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.full_name}, {self.city}"
+
+
+
+
 class Order(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     order_number = models.CharField(max_length=20, unique=True)
@@ -89,6 +107,8 @@ class Order(models.Model):
     delivery_date = models.DateTimeField(default=get_delivery_date)
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
     status = models.CharField(max_length=20, default='Placed')
+    address = models.ForeignKey(Address, on_delete=models.SET_NULL, null=True, blank=True, related_name='orders')
+
 
     def __str__(self):
         return f"Order {self.order_number}"
@@ -126,5 +146,7 @@ class ChatbotLog(models.Model):
 
     def __str__(self):
         return f"{self.timestamp} - {self.page} - {self.message_by}"
+    
+
 
 
