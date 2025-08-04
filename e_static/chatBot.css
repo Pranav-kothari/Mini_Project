@@ -1,168 +1,235 @@
+/* Variables for easy theme adjustments */
+:root {
+    --primary-color: #0d6efd; /* A vibrant blue for accents */
+    --primary-dark-color: #0056b3; /* Darker shade for hover states */
+    --text-dark: #333;
+    --text-light: #fff;
+    --background-light: #f8f9fa; /* A very light grey for subtle backgrounds */
+    --bubble-bot: #e9ecef; /* Light grey for bot messages */
+    --bubble-user: var(--primary-color); /* Primary color for user messages */
+    --border-radius-lg: 25px;
+    --border-radius-md: 15px;
+    --shadow-light: 0 4px 15px rgba(0, 0, 0, 0.1);
+    --shadow-medium: 0 8px 30px rgba(0, 0, 0, 0.15);
+    --transition-speed: 0.3s ease-in-out;
+}
+
+/* Base styles for the document to ensure consistent font and smoother rendering */
+body {
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased; /* For smoother font rendering on macOS */
+    -moz-osx-font-smoothing: grayscale; /* For smoother font rendering on macOS */
+}
+
 /* Chatbot container */
 #chatbot-window {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  width: 400px;
-  height: 600px;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  border-radius: 22px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  font-family: 'Poppins', sans-serif;
-  z-index: 9999;
-  transition: all 0.3s ease;
+    position: fixed;
+    bottom: 30px; /* Slightly increase distance from bottom */
+    right: 30px; /* Slightly increase distance from right */
+    width: 380px; /* Slightly adjust width for a more compact look */
+    height: 580px; /* Slightly adjust height */
+    background: rgba(255, 255, 255, 0.95); /* More opaque background */
+    backdrop-filter: blur(20px); /* Stronger blur for a modern glass effect */
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-medium);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    z-index: 9999;
+    transition: all var(--transition-speed);
+    transform-origin: bottom right; /* For scaling animation */
 }
 
 /* Chatbot header */
 #chatbot-header {
-  background: #0d6efd;
-  color: #fff;
-  padding: 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-weight: 600;
-  font-size: 18px;
+    background: var(--primary-color);
+    color: var(--text-light);
+    padding: 18px 25px; /* Adjust padding */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 600;
+    font-size: 1.15em; /* Use em for scalability */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* Subtle separator */
 }
 
 #chatbot-header button {
-  background: transparent;
-  border: none;
-  color: #fff;
-  font-size: 24px;
-  cursor: pointer;
+    background: transparent;
+    border: none;
+    color: var(--text-light);
+    font-size: 1.5em; /* Adjust size */
+    cursor: pointer;
+    padding: 5px; /* Add some padding for easier clicking */
+    transition: color var(--transition-speed);
+}
+
+#chatbot-header button:hover {
+    color: rgba(255, 255, 255, 0.8); /* Slight fade on hover */
 }
 
 /* Chat content area */
 #chatbot-content {
-  flex: 1;
-  padding: 20px;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  scroll-behavior: smooth;
+    flex: 1;
+    padding: 20px 25px; /* Match horizontal padding of header */
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px; /* Slightly reduce gap between messages */
+    scroll-behavior: smooth;
+    background-color: var(--background-light); /* Light background for content */
 }
 
 /* Message bubbles */
 #chatbot-content p {
-  padding: 14px 20px;
-  border-radius: 18px;
-  margin: 0;
-  line-height: 1.5;
-  font-size: 15px;
-  max-width: 85%;
-  word-wrap: break-word;
-  transition: all 0.3s ease;
+    padding: 12px 18px; /* Adjust padding */
+    border-radius: var(--border-radius-md);
+    margin: 0;
+    line-height: 1.6; /* Improve readability */
+    font-size: 0.95em; /* Slightly smaller font for a refined look */
+    max-width: 80%; /* Slightly reduce max-width for better flow */
+    word-wrap: break-word;
+    transition: all var(--transition-speed);
 }
 
 .bot-message {
-  align-self: flex-start;
-  background: #f0f2f5;
-  color: #333;
-  border: 1px solid #ddd;
+    align-self: flex-start;
+    background: var(--bubble-bot);
+    color: var(--text-dark);
+    border: 1px solid rgba(0, 0, 0, 0.08); /* Lighter, more subtle border */
+    border-bottom-left-radius: 5px; /* Pointed corner for bot */
 }
 
 .user-message {
-  align-self: flex-end;
-  background: #0d6efd;
-  color: #fff;
-  box-shadow: 0 3px 12px rgba(13, 110, 253, 0.3);
+    align-self: flex-end;
+    background: var(--bubble-user);
+    color: var(--text-light);
+    box-shadow: var(--shadow-light); /* Lighter shadow for user messages */
+    border-bottom-right-radius: 5px; /* Pointed corner for user */
 }
 
 /* Option buttons */
 .chatbot-option {
-  display: inline-block;
-  padding: 12px 20px;
-  border: 2px solid #0d6efd;
-  border-radius: 24px;
-  background: #fff;
-  color: #0d6efd;
-  font-weight: 600;
-  cursor: pointer;
-  font-size: 14px;
-  transition: all 0.25s ease;
-  margin-top: 4px;
+    display: inline-block;
+    padding: 10px 18px; /* Adjust padding */
+    border: 2px solid var(--primary-color);
+    border-radius: 20px; /* Slightly less rounded */
+    background: var(--text-light);
+    color: var(--primary-color);
+    font-weight: 500; /* Slightly lighter weight */
+    cursor: pointer;
+    font-size: 0.9em; /* Slightly smaller font */
+    transition: all 0.2s ease; /* Faster transition */
+    margin-top: 6px; /* Slightly more space */
+    text-decoration: none; /* Ensure no underline if it's an anchor */
+    text-align: center;
 }
 
 .chatbot-option:hover {
-  background: #0d6efd;
-  color: #fff;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+    background: var(--primary-color);
+    color: var(--text-light);
+    transform: translateY(-3px); /* More pronounced lift */
+    box-shadow: 0 6px 18px rgba(13, 110, 253, 0.35); /* Stronger hover shadow */
 }
 
 /* Loading dots animation */
 .loading-dots::after {
-  content: '...';
-  animation: blink 1.2s infinite;
+    content: '...';
+    animation: blink 1.2s infinite steps(3, start); /* Use steps for a more crisp dot appearance */
 }
 
 @keyframes blink {
-  0% { content: '.'; }
-  33% { content: '..'; }
-  66% { content: '...'; }
+    0% { content: '.'; }
+    33% { content: '..'; }
+    66% { content: '...'; }
+    100% { content: '.'; } /* Ensure it loops smoothly */
 }
 
 /* Chat button */
 #chatbot-button {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  width: 70px;
-  height: 70px;
-  background: #007bff;
-  border-radius: 50%;
-  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.3);
-  cursor: pointer;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-  overflow: hidden;
-  padding: 0;
+    position: fixed;
+    bottom: 30px; /* Match chatbot window position */
+    right: 30px; /* Match chatbot window position */
+    width: 65px; /* Slightly smaller button */
+    height: 65px; /* Slightly smaller button */
+    background: var(--primary-color);
+    border-radius: 50%;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25); /* Refined shadow */
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000; /* Higher z-index than window to be always on top */
+    overflow: hidden;
+    padding: 0;
+    transition: all var(--transition-speed);
 }
 
 #chatbot-button img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 50%;
+    width: 60%; /* Make image slightly smaller to have more button background visible */
+    height: 60%;
+    object-fit: contain; /* Ensure image fits well */
+    border-radius: 50%; /* Keep it circular */
 }
-
 
 #chatbot-button:hover {
-  background: #084298;
+    background: var(--primary-dark-color); /* Darker blue on hover */
+    box-shadow: 0 0 25px var(--primary-color), 0 0 50px rgba(13, 110, 253, 0.5); /* Glowing effect on hover */
+    transform: translateY(-2px); /* Subtle lift */
 }
-
-
-
 
 /* Scrollbar */
 #chatbot-content::-webkit-scrollbar {
-  width: 6px;
+    width: 8px; /* Slightly wider scrollbar for better visibility */
+}
+
+#chatbot-content::-webkit-scrollbar-track {
+    background: var(--background-light); /* Match content background */
+    border-radius: 10px;
 }
 
 #chatbot-content::-webkit-scrollbar-thumb {
-  background: #ccc;
-  border-radius: 20px;
+    background: #c5c5c5; /* Slightly darker thumb */
+    border-radius: 10px;
+    border: 2px solid var(--background-light); /* A thin border to make it stand out */
 }
 
+#chatbot-content::-webkit-scrollbar-thumb:hover {
+    background: #a5a5a5; /* Even darker on hover */
+}
+
+/* Animations for open/close or message entry */
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-#chatbot-button:hover {
-  box-shadow: 0 0 20px #007bff, 0 0 40px #007bff;
+    from {
+        opacity: 0;
+        transform: translateY(15px) scale(0.9); /* More pronounced initial state */
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
 }
 
+#chatbot-window.is-open {
+    display: flex; /* ensure it's visible */
+    animation: fadeIn var(--transition-speed) forwards;
+}
+
+#chatbot-window.is-closed {
+    animation: fadeOut var(--transition-speed) forwards;
+    pointer-events: none;
+}
+
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(15px) scale(0.9);
+        display: none; /* Hide element after animation */
+    }
+}

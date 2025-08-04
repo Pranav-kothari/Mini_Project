@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Write a Review</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Animated background particles */
+        body::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(255,255,255,0.1) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(255,255,255,0.05) 0%, transparent 50%),
+                radial-gradient(circle at 50% 10%, rgba(255,255,255,0.08) 0%, transparent 40%);
+            animation: float 20s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            33% { transform: translateY(-20px) rotate(1deg); }
+            66% { transform: translateY(10px) rotate(-1deg); }
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 
+                0 25px 50px rgba(0, 0, 0, 0.15),
+                0 0 0 1px rgba(255, 255, 255, 0.2);
+            transform: translateY(0);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .container:hover {
+            transform: translateY(-5px);
+            box-shadow: 
+                0 35px 70px rgba(0, 0, 0, 0.2),
+                0 0 0 1px rgba(255, 255, 255, 0.3);
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #667eea, transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        h2 {
+            color: #2d3748;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-align: center;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: #718096;
+            text-align: center;
+            margin-bottom: 35px;
+            font-size: 1.1rem;
+            opacity: 0;
+            animation: fadeInUp 0.6s ease 0.3s forwards;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+            opacity: 0;
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        .form-group:nth-child(2) { animation-delay: 0.4s; }
+        .form-group:nth-child(3) { animation-delay: 0.5s; }
+        .form-group:nth-child(4) { animation-delay: 0.6s; }
+        .form-group:nth-child(5) { animation-delay: 0.7s; }
+
+        label {
+            display: block;
+            color: #2d3748;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 16px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 16px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.9);
+            color: #2d3748;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 
+                0 0 0 3px rgba(102, 126, 234, 0.1),
+                0 4px 12px rgba(102, 126, 234, 0.15);
+            transform: translateY(-2px);
+            background: white;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+            font-family: inherit;
+        }
+
+        .rating-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 8px;
+        }
+
+        .stars {
+            display: flex;
+            gap: 5px;
+        }
+
+        .star {
+            font-size: 28px;
+            color: #e2e8f0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .star:hover,
+        .star.active {
+            color: #fbbf24;
+            transform: scale(1.1);
+        }
+
+        .star:hover ~ .star {
+            color: #e2e8f0;
+        }
+
+        .rating-text {
+            color: #667eea;
+            font-weight: 600;
+            font-size: 1.1rem;
+            min-width: 100px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 10px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
+        }
+
+        .submit-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .submit-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .submit-btn:hover::before {
+            left: 100%;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                padding: 30px 25px;
+            }
+            
+            h2 {
+                font-size: 2rem;
+            }
+            
+            .rating-container {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+        }
+
+        /* Additional visual enhancements */
+        .form-group::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            transition: width 0.3s ease;
+        }
+
+        .form-group:focus-within::before {
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Write Your Review</h2>
+        <p class="subtitle">Share your experience with this amazing product</p>
+        
+        <form method="post" id="reviewForm">
+            <!-- Django CSRF token would go here -->
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="reviewer_name">Your Name</label>
+                <div class="input-wrapper">
+                    <input type="text" id="reviewer_name" name="reviewer_name" placeholder="Enter your name" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="rating">Rating</label>
+                <div class="rating-container">
+                    <div class="stars" id="starRating">
+                        <span class="star" data-rating="1">★</span>
+                        <span class="star" data-rating="2">★</span>
+                        <span class="star" data-rating="3">★</span>
+                        <span class="star" data-rating="4">★</span>
+                        <span class="star" data-rating="5">★</span>
+                    </div>
+                    <span class="rating-text" id="ratingText">Select Rating</span>
+                    <input type="hidden" id="rating" name="rating" value="">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="title">Review Title</label>
+                <div class="input-wrapper">
+                    <input type="text" id="title" name="title" placeholder="Summarize your review in one line" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="review_text">Your Review</label>
+                <div class="input-wrapper">
+                    <textarea id="review_text" name="review_text" placeholder="Tell us about your experience with this product..." required></textarea>
+                </div>
+            </div>
+
+            <button type="submit" class="submit-btn">
+                Submit Review
+            </button>
+        </form>
+    </div>
+
+    <script>
+        // Star rating functionality
+        const stars = document.querySelectorAll('.star');
+        const ratingInput = document.getElementById('rating');
+        const ratingText = document.getElementById('ratingText');
+        
+        const ratingTexts = {
+            1: 'Poor',
+            2: 'Fair', 
+            3: 'Good',
+            4: 'Very Good',
+            5: 'Excellent'
+        };
+
+        stars.forEach((star, index) => {
+            star.addEventListener('click', () => {
+                const rating = index + 1;
+                ratingInput.value = rating;
+                ratingText.textContent = ratingTexts[rating];
+                
+                // Update star display
+                stars.forEach((s, i) => {
+                    if (i < rating) {
+                        s.classList.add('active');
+                    } else {
+                        s.classList.remove('active');
+                    }
+                });
+            });
+
+            star.addEventListener('mouseenter', () => {
+                const rating = index + 1;
+                ratingText.textContent = ratingTexts[rating];
+                
+                // Highlight stars on hover
+                stars.forEach((s, i) => {
+                    if (i < rating) {
+                        s.style.color = '#fbbf24';
+                        s.style.transform = 'scale(1.1)';
+                    } else {
+                        s.style.color = '#e2e8f0';
+                        s.style.transform = 'scale(1)';
+                    }
+                });
+            });
+        });
+
+        // Reset to selected rating when mouse leaves stars
+        document.getElementById('starRating').addEventListener('mouseleave', () => {
+            const currentRating = ratingInput.value;
+            if (currentRating) {
+                ratingText.textContent = ratingTexts[currentRating];
+                stars.forEach((s, i) => {
+                    if (i < currentRating) {
+                        s.style.color = '#fbbf24';
+                        s.style.transform = 'scale(1.1)';
+                    } else {
+                        s.style.color = '#e2e8f0';
+                        s.style.transform = 'scale(1)';
+                    }
+                });
+            } else {
+                ratingText.textContent = 'Select Rating';
+                stars.forEach(s => {
+                    s.style.color = '#e2e8f0';
+                    s.style.transform = 'scale(1)';
+                });
+            }
+        });
+
+        // Form validation and submission
+        // document.getElementById('reviewForm').addEventListener('submit', (e) => {
+        //     e.preventDefault();
+            
+        //     if (!ratingInput.value) {
+        //         alert('Please select a rating before submitting your review.');
+        //         return;
+        //     }
+            
+        //     // Add loading state to button
+        //     const submitBtn = document.querySelector('.submit-btn');
+        //     const originalText = submitBtn.textContent;
+        //     submitBtn.textContent = 'Submitting...';
+        //     submitBtn.disabled = true;
+            
+        //     // Simulate form submission (replace with actual form submission)
+        //     setTimeout(() => {
+        //         alert('Review submitted successfully!');
+        //         submitBtn.textContent = originalText;
+        //         submitBtn.disabled = false;
+        //         // document.getElementById('reviewForm').reset();
+        //     }, 1500);
+        // });
+
+        // Add floating animation to container
+        document.addEventListener('DOMContentLoaded', () => {
+            const container = document.querySelector('.container');
+            let isAnimating = false;
+            
+            setInterval(() => {
+                if (!isAnimating) {
+                    isAnimating = true;
+                    container.style.transform = 'translateY(-2px)';
+                    setTimeout(() => {
+                        container.style.transform = 'translateY(0px)';
+                        isAnimating = false;
+                    }, 2000);
+                }
+            }, 8000);
+        });
+    </script>
+</body>
+</html>

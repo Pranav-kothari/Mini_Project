@@ -1,11 +1,64 @@
-{% extends 'base.html' %}
-{% block content %}
-<div class="container mt-4">
-  <h3>Add New Address</h3>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Add New Address | MyShopee</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f2f2f2;
+      margin: 0;
+      padding: 20px;
+    }
+    .form-container {
+      max-width: 600px;
+      background: #fff;
+      padding: 25px;
+      margin: 30px auto;
+      border-radius: 10px;
+      box-shadow: 0 0 12px rgba(0,0,0,0.07);
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #f44;
+    }
+    form p {
+      margin-bottom: 15px;
+    }
+    label {
+      font-weight: 600;
+    }
+    input, select {
+      width: 100%;
+      padding: 8px;
+      margin-top: 6px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    button {
+      background: #f44;
+      color: #fff;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button:hover {
+      background: #d22;
+    }
+  </style>
+</head>
+<body>
+
+<div class="form-container">
+  <h2>Add New Address</h2>
   <form method="post">
     {% csrf_token %}
     {{ form.as_p }}
-    <button type="submit" class="btn btn-primary">Save Address</button>
+    <button type="submit">Save Address</button>
   </form>
 </div>
-{% endblock %}
+</body>
+</html>

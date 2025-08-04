@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  {% load static %}
+  <link rel="stylesheet" type="text/css" href="{% static 'home_st.css' %}">
+
+  <title>Document</title>
+</head>
+<body>
+  {% load static %}
+
+<!-- Sidebar -->
+<div id="sidebar" class="sidebar">
+  <a href="javascript:void(0)" class="closebtn" onclick="toggleSidebar()">&times;</a>
+  <div class="sidebar-inline-links">
+    <a href="{% url 'my_orders' %}">My Orders</a>
+    <a href="{% url 'my_profile' %}">My Profile</a>
+    <a href="#">My WishList</a>
+    <a href="#">My Reviews</a>
+    <a href="#">Help & Support</a>
+    {% if request.user.is_authenticated %}
+      {% if request.user.profile.role == 'seller' %}
+        <a href="{% url 'seller_dashboard' %}">Seller Dashboard</a>
+      {% endif %}
+    {% else %}
+      <a href="{% url 'login' %}">Login</a>
+      <a href="{% url 'signup' %}">Sign Up</a>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Navbar -->
+<nav class="navbar">
+  <div class="left-section">
+    <div class="hamburger" onclick="toggleSidebar()">&#9776;</div>
+    <div class="logo">
+      <a href="{% url 'home' %}" style="text-decoration:none; color:#f44;">MyShopee</a>
+    </div>
+  </div>
+
+  <form method="get" action="" class="filter-form">
+    <select name="category" onchange="this.form.submit()">
+      <option value="">All Categories</option>
+      {% for category in categories %}
+        <option value="{{ category.id }}" {% if selected_category == category.id %}selected{% endif %}>
+          {{ category.name }}
+        </option>
+      {% endfor %}
+    </select>
+    <input type="text" id="search-input" name="search" placeholder="Search products..." value="{{ search_query }}">
+    <button type="submit">Search</button>
+  </form>
+
+  <div class="right-section">
+    <div class="nav-links">
+      <a href="#">About</a>
+      <a href="#">Contact</a>
+      <a href="{% url 'home' %}">Home</a>
+      {% if request.user.is_authenticated %}
+        {% if request.user.profile.role == 'seller' %}
+          <a href="{% url 'seller_dashboard' %}">Dashboard</a>
+        {% endif %}
+        <a href="{% url 'logout' %}">Logout</a>
+      {% else %}
+        <a href="{% url 'login' %}">Login</a>
+        <a href="{% url 'signup' %}">Sign Up</a>
+      {% endif %}
+      <a href="{% url 'cart_detail' %}" class="cart-link">
+        <div class="cart-icon-container">
+          <img src="{% static 'img/empty-cart.png' %}" alt="Cart">
+          <span class="cart-count-badge">{{ cart_item_count }}</span>
+        </div>
+        <span class="cart-label">Cart</span>
+      </a>
+    </div>
+  </div>
+</nav>
+
+<script>
+  function toggleSidebar() {
+    const sidebar = document.getElementById("sidebar");
+    sidebar.style.width = (sidebar.style.width === "250px") ? "0" : "250px";
+  }
+</script>
+
+</body>
+</html>

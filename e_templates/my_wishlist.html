@@ -1,0 +1,315 @@
+{% load static %}
+{% load widget_tweaks %} {# This must be at the top level of the template #}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Wishlist | MyShopee</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    {# Google Fonts - Poppins for a modern, clean look #}
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #007bff; /* Bootstrap primary blue */
+            --secondary-color: #6c757d; /* Bootstrap secondary grey */
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --light-bg: #f8f9fa;
+            --dark-text: #343a40;
+            --card-bg: #ffffff;
+            --border-color: rgba(0, 0, 0, 0.1);
+            --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            --shadow-lg: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--light-bg);
+            color: var(--dark-text);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 960px; /* Slightly wider container for more space */
+            margin-top: 50px;
+            margin-bottom: 50px;
+        }
+
+        .wishlist-section {
+            background: var(--card-bg);
+            border-radius: 15px; /* More pronounced rounded corners */
+            box-shadow: var(--shadow-lg); /* Stronger shadow for depth */
+            padding: 40px;
+            margin-bottom: 30px; /* Space between sections */
+        }
+
+        h2, h4 {
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 25px;
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: var(--secondary-color);
+            margin-bottom: 8px;
+        }
+
+        /* Form specific enhancements */
+        .form-control-lg {
+            padding: 0.75rem 1.25rem; /* Larger padding for a more substantial input */
+            font-size: 1.1rem; /* Slightly larger font size */
+        }
+
+        .form-control, .form-select {
+            border-radius: 10px; /* Slightly more rounded corners than the default 8px */
+            border: 1px solid var(--border-color);
+            padding: 12px 15px;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.25); /* Standard Bootstrap blue glow */
+            outline: none; /* Remove default outline */
+        }
+
+        /* Styles for required field indicators */
+        .form-label .text-danger {
+            font-size: 0.8em; /* Make the asterisk smaller */
+            vertical-align: super; /* Position it slightly higher */
+        }
+
+        /* Custom invalid feedback (if you use Django form errors) */
+        .invalid-feedback {
+            font-size: 0.875em;
+            margin-top: 0.25rem;
+            color: var(--danger-color);
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            padding: 14px 30px; /* A bit more padding for a "meatier" button */
+            border-radius: 10px; /* Match form input radius */
+            font-weight: 600; /* Bolder text */
+            transition: background-color 0.3s ease, border-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3; /* Darker blue on hover */
+            border-color: #0056b3;
+            transform: translateY(-3px); /* More pronounced lift effect */
+            box-shadow: var(--shadow-sm); /* Add a small shadow on hover */
+        }
+
+        .list-group-item {
+            border-radius: 10px;
+            margin-bottom: 15px;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .list-group-item:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .wishlist-status {
+            text-transform: capitalize;
+            font-weight: 600;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+        }
+
+        .status-pending {
+            color: var(--warning-color);
+            background-color: rgba(255, 193, 7, 0.1);
+        }
+        .status-approved {
+            color: var(--success-color);
+            background-color: rgba(40, 167, 69, 0.1);
+        }
+        .status-rejected {
+            color: var(--danger-color);
+            background-color: rgba(220, 53, 69, 0.1);
+        }
+
+        .text-muted {
+            font-size: 0.9em;
+            color: var(--secondary-color) !important;
+        }
+
+        hr {
+            border-top: 1px solid rgba(0, 0, 0, 0.08);
+            margin-top: 40px;
+            margin-bottom: 40px;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .container {
+                margin-top: 30px;
+                margin-bottom: 30px;
+            }
+            .wishlist-section {
+                padding: 25px;
+            }
+            h2 {
+                font-size: 1.8em;
+            }
+            .list-group-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .wishlist-status {
+                margin-top: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="wishlist-section">
+        <h2 class="text-center mb-4">📝 My Wishlist</h2>
+        <p class="text-center text-muted mb-5">
+            Can't find what you're looking for? Suggest a product and we'll review it!
+        </p>
+
+        <div class="mb-5">
+            <h4 class="mb-4 text-center">Request a New Product</h4>
+            <form method="post">
+                {% csrf_token %}
+
+                {# Product Name Field #}
+                <div class="mb-3">
+                    <label for="id_product_name" class="form-label">Product Name <span class="text-danger">*</span></label>
+                    {{ form.product_name|add_class:"form-control form-control-lg"|attr:"placeholder:e.g., Wireless Noise-Cancelling Headphones"|attr:"aria-label:Product Name" }}
+                    {% if form.product_name.errors %}
+                        {% for error in form.product_name.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                {# Description Field #}
+                <div class="mb-3">
+                    <label for="id_description" class="form-label">Description <span class="text-danger">*</span></label>
+                    {{ form.description|add_class:"form-control"|attr:"rows:4"|attr:"placeholder:Provide a brief description of the product you wish to see, including key features or specifications."|attr:"aria-label:Product Description" }}
+                    {% if form.description.errors %}
+                        {% for error in form.description.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                {# Category and Subcategory Fields in a row #}
+                <div class="row mb-4">
+                    <div class="col-md-6 mb-3 mb-md-0"> {# mb-3 for mobile, mb-md-0 removes it on medium-up screens #}
+                        <label for="id_category" class="form-label">Category <span class="text-danger">*</span></label>
+                        {{ form.category|add_class:"form-select"|attr:"aria-label:Category" }}
+                        {% if form.category.errors %}
+                            {% for error in form.category.errors %}
+                                <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label for="id_subcategory" class="form-label">Subcategory (Optional)</label>
+                        {{ form.subcategory|add_class:"form-select"|attr:"aria-label:Subcategory" }}
+                        {% if form.subcategory.errors %}
+                            {% for error in form.subcategory.errors %}
+                                <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2 col-md-6 mx-auto mt-4"> {# Added mt-4 for more space #}
+                    <button type="submit" class="btn btn-primary btn-lg">Submit Request</button>
+                </div>
+            </form>
+        </div>
+
+        <hr>
+        <h4 class="text-center mb-4">Your Recent Requests</h4>
+        {% if requests %}
+            <ul class="list-group list-group-flush">
+                {% for req in requests %}
+                    <li class="list-group-item">
+                        <div>
+                            <strong>{{ req.product_name }}</strong>
+                            {% if req.category %}
+                                <span class="badge bg-secondary ms-2">{{ req.category.name }}</span>
+                            {% endif %}
+                            {% if req.subcategory %}
+                                <span class="badge bg-info text-dark ms-1">{{ req.subcategory.name }}</span>
+                            {% endif %}
+                            <p class="text-muted mt-1 mb-0 small">{{ req.description|truncatechars:100 }}</p>
+                            <small class="text-muted">{{ req.created_at|date:"M d, Y H:i" }}</small>
+                        </div>
+                        <span class="wishlist-status status-{{ req.status }}">
+                            {{ req.status }}
+                        </span>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <div class="text-center py-5">
+                <p class="text-muted lead">You haven't requested any products yet. Use the form above to add your first wishlist item!</p>
+                {# Make sure your static folder and image path are correct, e.g., my_app/static/images/empty_wishlist.png #}
+                <img src="{% static 'images/empty_wishlist.png' %}" alt="Empty Wishlist" class="img-fluid" style="max-width: 200px; opacity: 0.8;">
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    // Optional: Add JavaScript for dynamic subcategory filtering based on category selection
+    $(document).ready(function() {
+        $('#id_category').change(function() {
+            var categoryId = $(this).val();
+            var subcategorySelect = $('#id_subcategory');
+            subcategorySelect.empty().append('<option value="">----------</option>'); // Clear and add default option
+
+            if (categoryId) {
+                // IMPORTANT: Adjust this URL based on your Django `urls.py`
+                // Example: path('api/get_subcategories/<int:category_id>/', views.get_subcategories, name='get_subcategories'),
+                // Then the URL below would be `/api/get_subcategories/${categoryId}/`
+                $.ajax({
+                    url: `/get_subcategories/${categoryId}/`, // Example URL - Adjust as needed
+                    type: 'GET',
+                    success: function(data) {
+                        if (data.subcategories && data.subcategories.length > 0) {
+                            $.each(data.subcategories, function(index, value) { // Changed key to index for standard practice
+                                subcategorySelect.append('<option value="' + value.id + '">' + value.name + '</option>');
+                            });
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("Error fetching subcategories:", error);
+                        console.log(xhr.responseText); // Log the server response for debugging
+                    }
+                });
+            }
+        });
+        // Trigger change on load if a category is pre-selected (e.g., after a form submission error)
+        // This ensures subcategories are loaded if the page reloads with a category already selected.
+        if ($('#id_category').val()) {
+            $('#id_category').trigger('change');
+        }
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My Profile | MyShopee</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: linear-gradient(to right, #f0f2f5, #e0e7ee); /* Soft gradient background */
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start; /* Align to top for longer content */
+      min-height: 100vh;
+      padding: 40px 20px; /* Add some padding for overall layout */
+      box-sizing: border-box;
+    }
+    .profile-page {
+      max-width: 960px; /* Slightly wider for more content */
+      width: 100%;
+      background: #ffffff;
+      padding: 40px; /* Increased padding */
+      border-radius: 15px; /* More rounded corners */
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08); /* Stronger, softer shadow */
+      box-sizing: border-box;
+      animation: fadeIn 0.8s ease-out; /* Fade-in animation for the whole page */
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .profile-header {
+      font-size: 2.6em; /* Larger heading */
+      margin-bottom: 35px;
+      color: #e91e63; /* Vibrant pink */
+      text-align: center;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+    .profile-section {
+      margin-bottom: 40px; /* More spacing between sections */
+      background: #fdfdfd; /* Slightly different background for sections */
+      padding: 25px 30px;
+      border-radius: 12px;
+      border: 1px solid #eee;
+      transition: all 0.3s ease;
+    }
+    .profile-section:hover {
+        box-shadow: 0 5px 20px rgba(0,0,0,0.05); /* Subtle hover effect */
+        border-color: #e91e6330;
+    }
+    .section-title {
+      font-size: 1.6em; /* Larger section titles */
+      border-bottom: 2px solid #e91e63; /* Thicker, colored border */
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+      color: #333;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+    }
+    .section-title i {
+        margin-right: 10px;
+        color: #e91e63;
+    }
+    .profile-details p, .address-item p {
+      margin: 10px 0; /* Increased margin for better line spacing */
+      font-size: 1.05em; /* Slightly larger text */
+      color: #555;
+      line-height: 1.6;
+    }
+    .profile-details strong, .address-item strong {
+        color: #333;
+    }
+    .address-card {
+      border: 1px solid #e0e0e0;
+      padding: 20px; /* More padding */
+      border-radius: 10px; /* Softer corners */
+      margin-bottom: 18px; /* Spacing between cards */
+      background: #ffffff;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.04); /* Light shadow for cards */
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      position: relative; /* For default tag */
+    }
+    .address-card:hover {
+        transform: translateY(-3px); /* Lift effect on hover */
+        box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+    }
+    .address-card .default-tag {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background-color: #4CAF50; /* Green for default tag */
+        color: white;
+        padding: 5px 10px;
+        border-radius: 5px;
+        font-size: 0.85em;
+        font-weight: 500;
+    }
+
+    .btn-group {
+        margin-top: 20px;
+        display: flex; /* Use flexbox for button alignment */
+        gap: 10px; /* Space between buttons */
+        flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
+    }
+
+    .btn {
+      display: inline-flex; /* Use flexbox for icon alignment */
+      align-items: center;
+      padding: 10px 20px; /* More generous padding */
+      font-size: 1em; /* Slightly larger font */
+      text-decoration: none;
+      color: #fff;
+      background-color: #e91e63; /* Primary button color */
+      border-radius: 8px; /* More rounded buttons */
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+      font-weight: 500;
+    }
+    .btn i {
+        margin-right: 8px;
+    }
+    .btn:hover {
+      background-color: #d81b60; /* Darker on hover */
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(233, 30, 99, 0.3);
+    }
+    .btn:active {
+        transform: translateY(0);
+    }
+    .btn-secondary {
+      background-color: #6c757d;
+    }
+    .btn-secondary:hover {
+      background-color: #5a6268;
+      box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+    }
+    .btn-danger {
+      background-color: #dc3545;
+    }
+    .btn-danger:hover {
+      background-color: #c82333;
+      box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+    }
+    .no-data {
+      color: #888;
+      font-size: 1.05em;
+      padding: 10px 0;
+      text-align: center;
+      font-style: italic;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .profile-page {
+        padding: 30px;
+        margin: 20px auto;
+      }
+      .profile-header {
+        font-size: 2.2em;
+      }
+      .section-title {
+        font-size: 1.4em;
+      }
+      .profile-details p, .address-item p, .no-data {
+        font-size: 0.95em;
+      }
+      .btn {
+        padding: 9px 18px;
+        font-size: 0.95em;
+      }
+      .btn-group {
+        flex-direction: column; /* Stack buttons on small screens */
+        gap: 8px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .profile-page {
+        padding: 20px;
+      }
+      .profile-header {
+        font-size: 1.8em;
+      }
+      .section-title {
+        font-size: 1.2em;
+      }
+      .profile-section {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="profile-page">
+  <h2 class="profile-header">My Profile</h2>
+
+  <div class="profile-section">
+    <div class="section-title"><i class="fas fa-user-circle"></i> Account Information</div>
+    <div class="profile-details">
+      <p><strong>Full Name:</strong> {{ request.user.get_full_name }}</p>
+      <p><strong>Username:</strong> {{ request.user.username }}</p>
+      <p><strong>Email:</strong> {{ request.user.email }}</p>
+      <p><strong>Role:</strong> {{ request.user.profile.role|title }}</p>
+    </div>
+    <div class="btn-group">
+        <a href="{% url 'edit_profile' %}" class="btn"><i class="fas fa-edit"></i> Edit Profile</a>
+    </div>
+  </div>
+
+  <div class="profile-section">
+    <div class="section-title"><i class="fas fa-map-marker-alt"></i> Saved Addresses</div>
+
+    {% if request.user.addresses.all %}
+      {% for address in request.user.addresses.all %}
+        <div class="address-card">
+          {% if address.is_default %}
+            <span class="default-tag">Default</span>
+          {% endif %}
+          <p><strong>Name:</strong> {{ address.full_name }}</p>
+          <p><strong>Phone:</strong> {{ address.phone_number }}</p>
+          <p><strong>Address:</strong> {{ address.address_line_1 }}{% if address.address_line_2 %}, {{ address.address_line_2 }}{% endif %}</p>
+          <p><strong>City:</strong> {{ address.city }}</p>
+          <p><strong>State:</strong> {{ address.state }}</p>
+          <p><strong>Pincode:</strong> {{ address.pincode }}</p>
+          <p><strong>Country:</strong> {{ address.country }}</p>
+          <div class="btn-group">
+            <a href="{% url 'edit_address' address.id %}" class="btn btn-secondary"><i class="fas fa-pencil-alt"></i> Edit</a>
+            <a href="{% url 'delete_address' address.id %}" class="btn btn-danger"><i class="fas fa-trash-alt"></i> Delete</a>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <p class="no-data">No addresses added yet. Add your first address to get started!</p>
+    {% endif %}
+
+    <div class="btn-group">
+        <a href="{% url 'add_address' %}" class="btn"><i class="fas fa-plus-circle"></i> Add New Address</a>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

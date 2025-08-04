@@ -4,6 +4,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.auth.views import LogoutView
 from .views import log_chat_message
+from .views import my_wishlist, wishlist_suggestions
 
 
 
@@ -12,7 +13,7 @@ urlpatterns = [
     path('signup/', views.signup, name='signup'),
     path('verify-otp/', views.verify_otp, name='verify_otp'),
     path('home/', views.home, name='home'),
-    path('product/<int:id>/', views.product_detail, name='product_detail'),
+    path('product/<int:product_id>/', views.product_detail, name='product_detail'),
     path("autocomplete/", views.product_autocomplete, name="product_autocomplete"),
     path('home/about/', views.about_view, name='about'),
     path('cart/add/<int:product_id>/', views.add_to_cart, name='add_to_cart'),
@@ -35,4 +36,18 @@ urlpatterns = [
     path('api/price_range/<int:subcategory_id>/', views.get_price_range, name='get_price_range'),
     path('api/log_message/', log_chat_message, name='log_message'),
     path('add-address/', views.add_address, name='add_address'),
-]
+    path('order_success/<str:order_number>/', views.order_success, name='order_success'),
+    path('cart/create_payment_order/', views.create_payment_order, name='create_payment_order'),
+    path('my-orders/', views.my_orders, name='my_orders'),
+    path('my-profile/', views.my_profile, name='my_profile'),
+    path('edit-profile/', views.edit_profile, name='edit_profile'),
+    path('add-address/', views.add_address, name='add_address'),
+    path('edit-address/<int:address_id>/', views.edit_address, name='edit_address'),
+    path('delete-address/<int:address_id>/', views.delete_address, name='delete_address'),
+    path('add_address_ajax/', views.add_address_ajax, name='add_address_ajax'),
+    path('my-wishlist/', my_wishlist, name='my_wishlist'),
+    path('seller/wishlist-suggestions/', wishlist_suggestions, name='wishlist_suggestions'),
+    path('api/userinfo/', views.userinfo, name='userinfo'),
+    path('my-reviews/', views.my_reviews, name='my_reviews'),
+    path('review/<int:product_id>/', views.add_product_review, name='add_product_review'),
+]+static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

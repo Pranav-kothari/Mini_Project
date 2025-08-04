@@ -2,104 +2,511 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Seller Dashboard | MyShopee</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'dashboard.css' %}">
-  <style>
-    .card { border-radius: 12px; }
-    .stat-card { padding: 20px; background: #f8f9fa; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
-  </style>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <meta charset="UTF-8">
+    <title>Seller Dashboard | MyShopee</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    {# Google Fonts - Poppins for headings, Inter for body text for a modern feel #}
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+    {# Font Awesome for icons (optional, but adds visual flair) #}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #007bff; /* Original primary */
+            --primary-dark: #0056b3;
+            --secondary-color: #6c757d;
+            --info-color: #17a2b8;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --light-bg: #f4f7f6; /* Slightly lighter background for contrast */
+            --dark-text: #343a40;
+            --card-bg: #ffffff;
+            --border-color: #e0e6ed; /* Lighter border for clean look */
+            --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            --shadow-md: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.08); /* More pronounced shadow */
+            --shadow-lg: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.1); /* Deeper shadow for main sections */
+            --border-radius: 12px;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--light-bg);
+            color: var(--dark-text);
+            line-height: 1.6;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Poppins', sans-serif;
+            color: var(--dark-text);
+            font-weight: 600;
+        }
+
+        .container {
+            max-width: 1200px; /* Wider container for more content */
+        }
+
+        /* Header & Button */
+        .dashboard-header {
+            background-color: var(--card-bg);
+            padding: 25px 30px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .dashboard-header h2 {
+            margin-bottom: 0;
+            color: var(--primary-dark);
+            display: flex;
+            align-items: center;
+        }
+        .dashboard-header h2 .icon {
+            font-size: 1em; /* Adjust if using a specific icon */
+            margin-right: 10px;
+            color: var(--primary-color);
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            padding: 10px 25px;
+            border-radius: 8px; /* Slightly less rounded than cards for buttons */
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            border-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-sm);
+        }
+        .btn-outline-success {
+            border-color: var(--success-color);
+            color: var(--success-color);
+        }
+        .btn-outline-success:hover {
+            background-color: var(--success-color);
+            color: var(--card-bg);
+        }
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.875rem;
+            border-radius: 6px;
+        }
+
+        /* Stat Cards */
+        .stat-card {
+            padding: 25px;
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-md);
+            text-align: center;
+            transition: all 0.3s ease;
+            height: 100%; /* Ensure uniform height in a row */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+        .stat-card h5 {
+            color: var(--secondary-color);
+            margin-bottom: 10px;
+            font-weight: 500;
+            font-size: 1rem;
+        }
+        .stat-card p.fs-4 {
+            font-size: 2.25rem !important; /* Larger font for value */
+            font-weight: 700;
+            color: var(--dark-text);
+            line-height: 1;
+            margin-bottom: 0;
+        }
+        .stat-card .icon {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+
+        /* General Card for Chart and Wishlist */
+        .card {
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-md);
+            border: none; /* Remove default bootstrap border */
+            background-color: var(--card-bg);
+        }
+
+        /* Chart Specifics */
+        #salesChart {
+            max-height: 300px; /* Control chart height */
+        }
+
+        /* Table Styling */
+        .table {
+            border-collapse: separate; /* Allow border-radius on cells */
+            border-spacing: 0 10px; /* Space between rows */
+            border-radius: var(--border-radius); /* Apply to whole table card */
+            overflow: hidden; /* Hide overflow if table is in a container with radius */
+        }
+        .table thead {
+            background-color: var(--primary-color); /* Darker header */
+            color: #fff;
+            border-bottom: none;
+        }
+        .table th, .table td {
+            padding: 15px; /* More padding */
+            vertical-align: middle;
+            border-bottom: 1px solid var(--border-color); /* Lighter row separators */
+            background-color: var(--card-bg); /* Ensure consistent background */
+        }
+        .table tbody tr:last-child td {
+            border-bottom: none; /* No border on last row */
+        }
+        .table-striped tbody tr:nth-of-type(odd) td {
+            background-color: #fcfcfc; /* Slightly different stripe color */
+        }
+        .table-dark th {
+            border-bottom: none;
+        }
+
+        /* Badges */
+        .badge {
+            padding: 0.5em 0.8em;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            font-size: 0.8em;
+        }
+        .badge.bg-success { background-color: var(--success-color) !important; }
+        .badge.bg-danger { background-color: var(--danger-color) !important; }
+        .badge.bg-secondary { background-color: var(--secondary-color) !important; }
+        .badge.bg-info { background-color: var(--info-color) !important; } /* For wishlist categories */
+
+
+        /* Approved Wishlist Cards */
+        .wishlist-card {
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-sm);
+            padding: 25px;
+            transition: all 0.3s ease;
+            height: 100%; /* Ensure uniform height in a row */
+        }
+        .wishlist-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+        }
+        .wishlist-card .card-title {
+            color: var(--primary-dark);
+            font-size: 1.15rem;
+            margin-bottom: 10px;
+        }
+        .wishlist-card .card-text {
+            color: var(--secondary-color);
+            font-size: 0.95rem;
+            margin-bottom: 15px;
+        }
+        .wishlist-card strong {
+            color: var(--dark-text);
+        }
+        .wishlist-card .btn {
+            display: block; /* Make button full width of card */
+            width: 100%;
+        }
+
+        /* Toast Notifications */
+        .toast {
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-lg);
+            background-color: var(--danger-color); /* Red for rejected */
+        }
+        .toast.bg-danger { background-color: var(--danger-color) !important; }
+        .toast-body {
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+        .toast-body strong {
+            font-weight: 700;
+        }
+        .btn-close-white {
+            filter: invert(1); /* Makes close button white */
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .dashboard-header {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 20px;
+                margin-bottom: 20px;
+            }
+            .dashboard-header h2 {
+                margin-bottom: 15px;
+                font-size: 1.8rem;
+            }
+            .btn-primary {
+                width: 100%;
+            }
+            .stat-card {
+                margin-bottom: 20px;
+                padding: 20px;
+            }
+            .table-responsive { /* Ensure table is scrollable on small screens */
+                overflow-x: auto;
+            }
+            .table th, .table td {
+                padding: 12px;
+            }
+            .wishlist-card {
+                padding: 20px;
+            }
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
 <div class="container py-4">
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="mb-0">📊 Seller Dashboard</h2>
-    <a href="{% url 'add_product' %}" class="btn btn-primary">+ Add Product</a>
-  </div>
 
+    <div class="dashboard-header">
+        <h2 class="mb-0">
+            <i class="fas fa-chart-line icon"></i> Seller Dashboard
+        </h2>
+        <a href="{% url 'add_product' %}" class="btn btn-primary">
+            <i class="fas fa-plus-circle me-2"></i> Add New Product
+        </a>
+    </div>
 
-  <div class="row mb-4">
-    <div class="col-md-4">
-      <div class="stat-card">
-        <h5>Total Orders</h5>
-        <p class="fs-4">{{ total_orders }}</p>
-      </div>
-    </div>
-    <div class="col-md-4">
-      <div class="stat-card">
-        <h5>Total Sales</h5>
-        <p class="fs-4">₹{{ total_sales }}</p>
-      </div>
-    </div>
-    <div class="col-md-4">
-      <div class="stat-card">
-        <h5>Total Products</h5>
-        <p class="fs-4">{{ total_products }}</p>
-      </div>
-    </div>
-  </div>
-  <div class="card p-4 mb-4">
-  <canvas id="salesChart" height="100"></canvas>
-</div>
-  <h4 class="mb-3">Your Product Listings</h4>
-  <table class="table table-striped shadow-sm">
-    <thead class="table-dark">
-      <tr>
-        <th>Product Name</th>
-        <th>Price</th>
-        <th>Stock</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for item in listings %}
-      <tr>
-        <td>{{ item.product.name }}</td>
-        <td>₹{{ item.price }}</td>
-        <td>{{ item.stock }}</td>
-        <td>
-            <div class="d-flex">
-                <a href="{% url 'edit_listing' item.id %}" class="btn btn-sm btn-primary me-2">Edit</a>
-                <a href="{% url 'delete_product' item.product.id %}" class="btn btn-sm btn-danger">Delete</a>
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3 mb-md-0">
+            <div class="stat-card">
+                <i class="fas fa-shopping-cart icon"></i>
+                <h5>Total Orders</h5>
+                <p class="fs-4">{{ total_orders|default:0 }}</p>
             </div>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+        </div>
+        <div class="col-md-4 mb-3 mb-md-0">
+            <div class="stat-card">
+                <i class="fas fa-money-bill-wave icon"></i>
+                <h5>Total Sales</h5>
+                <p class="fs-4">₹{{ total_sales|default:"0.00"|floatformat:2 }}</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3 mb-md-0">
+            <div class="stat-card">
+                <i class="fas fa-box-open icon"></i>
+                <h5>Total Products</h5>
+                <p class="fs-4">{{ total_products|default:0 }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="card p-4 mb-5"> {# Increased mb to 5 #}
+        <h4 class="mb-4">Sales Performance</h4>
+        <canvas id="salesChart" height="100"></canvas>
+    </div>
+
+    <h4 class="mb-4">Your Product Listings</h4>
+    <div class="table-responsive card p-3"> {# Wrap table in responsive div and card #}
+        <table class="table table-hover align-middle"> {# Changed to table-hover for interactivity #}
+            <thead class="table-dark">
+                <tr>
+                    <th>Product Name</th>
+                    <th>Price</th>
+                    <th>Stock</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in listings %}
+                <tr>
+                    <td>
+                        <strong>{{ item.product.name }}</strong>
+                        {% if item.product.category %}
+                            <br><small class="text-muted">{{ item.product.category.name }}{% if item.product.subcategory %}<span class="mx-1">/</span>{{ item.product.subcategory.name }}{% endif %}</small>
+                        {% endif %}
+                    </td>
+                    <td>₹{{ item.price|floatformat:2 }}</td>
+                    <td>{{ item.stock }}</td>
+                    <td>
+                        {% if item.status == 'Rejected' %}
+                        <span class="badge bg-danger">Rejected</span>
+                        {% elif item.status == 'Fully Approved' %}
+                        <span class="badge bg-success">Approved</span> {# Shorter text #}
+                        {% else %}
+                        <span class="badge bg-secondary">Pending</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="d-flex">
+                            <a href="{% url 'edit_listing' item.id %}" class="btn btn-sm btn-info me-2"><i class="fas fa-edit"></i> Edit</a> {# Changed to btn-info #}
+                            {# Consider using a confirm dialog for delete for better UX #}
+                            <a href="{% url 'delete_product' item.product.id %}" class="btn btn-sm btn-danger"><i class="fas fa-trash-alt"></i> Delete</a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %} {# Handle empty listings #}
+                <tr>
+                    <td colspan="5" class="text-center py-4 text-muted">
+                        No product listings yet. Click "Add New Product" to get started!
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <h4 class="mb-4 mt-5">📝 Approved Wishlist Requests</h4>
+    {% if approved_wishlist %}
+        <div class="row">
+            {% for item in approved_wishlist %}
+                <div class="col-md-6 col-lg-4 mb-4"> {# Adjusted column sizing for more cards per row on large screens #}
+                    <div class="wishlist-card">
+                        <h5 class="card-title">{{ item.product_name }}</h5>
+                        <p class="card-text small text-muted">{{ item.description|default:"No description provided."|truncatechars:120 }}</p>
+                        <p class="mb-2">
+                            <strong>Category:</strong> {{ item.category.name|default:"—" }}<br>
+                            <strong>Subcategory:</strong> {{ item.subcategory.name|default:"—" }}
+                        </p>
+                        <a href="{% url 'add_product' %}?wishlist_id={{ item.id }}" class="btn btn-outline-success btn-sm mt-2">
+                            <i class="fas fa-plus-circle me-1"></i> List this Product
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-muted text-center py-4">No approved wishlist suggestions available right now. Keep an eye out!</p>
+    {% endif %}
+
+</div>
+
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+    {% for item in listings %}
+        {% if item.status == 'Rejected' %}
+            <div id="toast{{ item.id }}" class="toast align-items-center text-white bg-danger border-0 mb-2" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <i class="fas fa-exclamation-circle me-2"></i> <strong>{{ item.product.name }}</strong> was rejected by admin.
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        {% endif %}
+    {% endfor %}
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     const ctx = document.getElementById('salesChart').getContext('2d');
-const salesChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-        datasets: [{
-            label: 'Sales',
-            data: [12000, 15000, 18000, 20000, 24000, 30000],
-            backgroundColor: 'rgba(111, 66, 193, 0.2)',
-            borderColor: '#6f42c1',
-            borderWidth: 3,
-            tension: 0.4,
-            fill: true,
-            pointBackgroundColor: '#6f42c1'
-        }]
-    },
-    options: {
-        responsive: true,
-        plugins: { legend: { display: false } },
-        scales: {
-            y: { beginAtZero: true },
-            x: { grid: { display: false } }
+    const salesChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'], /* Replace with actual data from Django context */
+            datasets: [{
+                label: 'Monthly Sales', /* More descriptive label */
+                data: [12000, 15000, 18000, 20000, 24000, 30000], /* Replace with actual data from Django context */
+                backgroundColor: 'rgba(0, 123, 255, 0.1)', /* Use primary-color with opacity */
+                borderColor: 'var(--primary-color)',
+                borderWidth: 3,
+                tension: 0.4, /* Smooth curves */
+                fill: true,
+                pointBackgroundColor: 'var(--primary-dark)',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 5,
+                pointHoverRadius: 7
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false, /* Allow chart to resize more freely */
+            plugins: {
+                legend: {
+                    display: true, /* Display legend for clarity */
+                    position: 'top',
+                    labels: {
+                        font: {
+                            family: 'Inter',
+                            size: 14,
+                            weight: '500'
+                        },
+                        color: 'var(--dark-text)'
+                    }
+                },
+                tooltip: { /* Enhance tooltip appearance */
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleFont: { family: 'Inter', size: 16, weight: '600' },
+                    bodyFont: { family: 'Inter', size: 14 },
+                    padding: 12,
+                    caretPadding: 10,
+                    cornerRadius: 8
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)', /* Lighter grid lines */
+                        drawBorder: false /* No border on the axis line */
+                    },
+                    ticks: {
+                        font: {
+                            family: 'Inter',
+                            size: 12
+                        },
+                        color: 'var(--secondary-color)',
+                        callback: function(value, index, values) {
+                            return '₹' + value.toLocaleString(); /* Format Y-axis labels as currency */
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Sales Amount (₹)',
+                        font: { family: 'Inter', size: 14, weight: '500' },
+                        color: 'var(--dark-text)'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        font: {
+                            family: 'Inter',
+                            size: 12
+                        },
+                        color: 'var(--secondary-color)'
+                    },
+                    title: {
+                        display: true,
+                        text: 'Month',
+                        font: { family: 'Inter', size: 14, weight: '500' },
+                        color: 'var(--dark-text)'
+                    }
+                }
+            }
         }
-    }
-});
+    });
 
+    // Show toasts for rejected products
+    document.addEventListener('DOMContentLoaded', function() {
+        {% for item in listings %}
+            {% if item.status == 'Rejected' %}
+                var toastEl = document.getElementById('toast{{ item.id }}');
+                if (toastEl) {
+                    var toast = new bootstrap.Toast(toastEl);
+                    toast.show();
+                }
+            {% endif %}
+        {% endfor %}
+    });
 </script>
 </body>
 </html>

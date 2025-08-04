@@ -3,12 +3,15 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Home | MyShopee</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MyShopee - Premium Shopping Experience</title>
   <link rel="icon" href="{% static 'img/favicon.ico' %}" type="image/x-icon">
-  <link rel="stylesheet" type="text/css" href="{% static 'home_st.css' %}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.carousel.min.css">
   <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
-  <link rel="stylesheet" type="text/css" href="{% static 'chatbot.css' %}">
+  <link rel="stylesheet" type="text/css" href="{% static 'home_st.css' %}">
+  <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+
   
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
@@ -25,183 +28,475 @@
 
 <body>
 
-  <!-- Navbar -->
-  <nav class="navbar">
-    <div class="logo">MyShopee</div>
-    <form method="get" action="" class="filter-form">
-      <select name="category" onchange="this.form.submit()">
-        <option value="">All Categories</option>
-        {% for category in categories %}option
-            <option value="{{ category.id }}" {% if selected_category == category.id %}selected{% endif %}>
-            {{ category.name }}
-          </option>
-        {% endfor %}
-      </select>
-
-      <input type="text" id="search-input" name="search" placeholder="Search products..." value="{{ search_query }}">
-      <button type="submit">Search</button>
-    </form>
-
-    <ul class="nav-links">
-      <li><a href="{% url 'home' %}">Home</a></li>
-      <li><a href="#container">Products</a></li>
-      <li><a href="{% url 'about' %}">About</a></li>
-      <li><a href="#">Contact</a></li>
-      <li>
-        <a href="{% url 'cart_detail' %}" class="cart-link">
-          <div class="cart-icon-container">
-            <img src="{% static 'img/empty-cart.png' %}" alt="Cart">
-            <span class="cart-count-badge">{{ cart_item_count }}</span>
-          </div>
-          <span class="cart-label">Cart</span>
-        </a>
-      </li>
-
-      {% if request.user.is_authenticated %}
-        {% if request.user.profile.role == 'seller' %}
-          <li><a href="{% url 'seller_dashboard' %}">Seller Dashboard</a></li>
-        {% endif %}
-        <li><a href="{% url 'logout' %}">Logout</a></li>
-      {% else %}
-        <li><a href="{% url 'login' %}">Login</a></li>
-        <li><a href="{% url 'signup' %}">Sign Up</a></li>
+<!-- Modern Sidebar -->
+<div id="sidebar" class="sidebar">
+  <div class="sidebar-header">
+    <h3>Menu</h3>
+    <button class="closebtn" onclick="toggleSidebar()">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+  
+  <div class="sidebar-content">
+    <div class="sidebar-section">
+      <h4>My Account</h4>
+      <a href="{% url 'my_orders' %}"><i class="fas fa-box"></i> My Orders</a>
+      <a href="{% url 'my_profile' %}"><i class="fas fa-user"></i> My Profile</a>
+      <a href="{% url 'my_wishlist' %}"><i class="fas fa-heart"></i> My Wishlist</a>
+      <a href="{% url 'my_reviews' %}"><i class="fas fa-star"></i> My Reviews</a>
+    </div>
+    
+    <div class="sidebar-section">
+      <h4>Support</h4>
+      <a href="#"><i class="fas fa-headset"></i> Help & Support</a>
+      <a href="#"><i class="fas fa-question-circle"></i> FAQs</a>
+    </div>
+    
+    {% if request.user.is_authenticated %}
+      {% if request.user.profile.role == 'seller' %}
+      <div class="sidebar-section">
+        <h4>Seller</h4>
+        <a href="{% url 'seller_dashboard' %}"><i class="fas fa-store"></i> Seller Dashboard</a>
+      </div>
       {% endif %}
-    </ul>
-  </nav>
+    {% else %}
+      <div class="sidebar-section">
+        <a href="{% url 'login' %}" class="btn-sidebar-primary"><i class="fas fa-sign-in-alt"></i> Login</a>
+        <a href="{% url 'signup' %}" class="btn-sidebar-secondary"><i class="fas fa-user-plus"></i> Sign Up</a>
+      </div>
+    {% endif %}
+  </div>
+</div>
 
-  {% if not search_query and not selected_category %}
-  <div class="carousel-container">
-    <div class="owl-carousel">
-      <div><img src="{% static 'img/Carousel_image1.jpg' %}" alt="Promotional Banner"></div>
-      <div><img src="{% static 'img/banner1.jpg' %}" alt="Product Deals"></div>
-      <div><img src="{% static 'img/banner2.jpg' %}" alt="New Arrivals"></div>
-      <div><img src="{% static 'img/banner3.jpg' %}" alt="Festive Offers"></div>
+<!-- Professional Navbar -->
+<nav class="navbar">
+  <div class="navbar-container">
+    <!-- Top Bar -->
+    <div class="navbar-top">
+      <div class="nav-left">
+        <button class="hamburger" onclick="toggleSidebar()">
+          <i class="fas fa-bars"></i>
+        </button>
+        <a href="{% url 'home' %}" class="logo">
+          MyShopee
+        </a>
+      </div>
+      
+      <!-- Search Bar -->
+      <form method="get" action="" class="search-form">
+        <div class="search-wrapper">
+          <select name="category" class="category-select">
+            <option value="">All Categories</option>
+            {% for category in categories %}
+              <option value="{{ category.id }}" {% if selected_category == category.id %}selected{% endif %}>
+                {{ category.name }}
+              </option>
+            {% endfor %}
+          </select>
+          <input type="text" id="search-input" name="search" placeholder="Search for products, brands and more" value="{{ search_query }}" class="search-input">
+          <button type="submit" class="search-btn">
+            <i class="fas fa-search"></i>
+          </button>
+        </div>
+      </form>
+      
+      <!-- Nav Actions -->
+      <div class="nav-actions">
+        {% if request.user.is_authenticated %}
+          <div class="nav-item dropdown">
+            <button class="nav-link">
+              <i class="fas fa-user"></i>
+              <span>{{ user.username }}</span>
+              <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="dropdown-menu">
+              <a href="{% url 'my_profile' %}">My Profile</a>
+              <a href="{% url 'my_orders' %}">Orders</a>
+              <a href="{% url 'my_wishlist' %}">Wishlist</a>
+              {% if request.user.profile.role == 'seller' %}
+                <div class="dropdown-divider"></div>
+                <a href="{% url 'seller_dashboard' %}">Seller Dashboard</a>
+              {% endif %}
+              <div class="dropdown-divider"></div>
+              <a href="{% url 'logout' %}">Logout</a>
+            </div>
+          </div>
+        {% else %}
+          <a href="{% url 'login' %}" class="nav-link">
+            <i class="fas fa-user"></i>
+            <span>Login</span>
+          </a>
+        {% endif %}
+        
+        <a href="{% url 'cart_detail' %}" class="nav-link cart-link">
+          <div class="cart-icon-wrapper">
+            <i class="fas fa-shopping-cart"></i>
+            <span class="cart-badge">{{ cart_item_count }}</span>
+          </div>
+          <span>Cart</span>
+        </a>
+      </div>
+    </div>
+    
+    <!-- Bottom Navigation -->
+    <div class="navbar-bottom">
+      <div class="nav-categories">
+        <a href="{% url 'home' %}" class="nav-category {% if not selected_category %}active{% endif %}">All</a>
+        {% for category in categories|slice:":8" %}
+          <a href="?category={{ category.id }}" class="nav-category {% if selected_category == category.id %}active{% endif %}">
+            {{ category.name }}
+          </a>
+        {% endfor %}
+        <a href="#" class="nav-category">More <i class="fas fa-chevron-down"></i></a>
+      </div>
     </div>
   </div>
-  {% endif %}
+</nav>
 
-  <script>
-  $(document).ready(function(){
-    $('.owl-carousel').owlCarousel({
-      loop:true,
-      margin:10,
-      nav:true,
-      autoplay:true,
-      autoplayTimeout:3000,
-      responsive:{
-        0:{ items:1 },
-        600:{ items:1 },
-        1000:{ items:1 }
-      }
-    });
-  });
-  </script>
-
-  <div class="container" id="container">
-    <h1>Featured Products</h1>
-
-{% if subcategories %}
-<div class="subcategory-filter">
-  {% for subcategory in subcategories %}
-    <a href="?category={{ selected_category }}&subcategory={{ subcategory.id }}" class="{% if selected_subcategory == subcategory.id %}active{% endif %}">
-      {{ subcategory.name }}
-    </a>
-  {% endfor %}
-</div>
+<!-- Hero Carousel -->
+{% if not search_query and not selected_category %}
+<section class="hero-carousel">
+  <div class="owl-carousel hero-slider">
+    <div class="hero-slide">
+      <img src="{% static 'img/Carousel_image1.jpg' %}" alt="Promotional Banner">
+      <div class="hero-content">
+        <h2>Summer Collection</h2>
+        <p>Up to 50% off on selected items</p>
+        <a href="#" class="btn-primary">Shop Now</a>
+      </div>
+    </div>
+    <div class="hero-slide">
+      <img src="{% static 'img/banner1.jpg' %}" alt="Product Deals">
+      <div class="hero-content">
+        <h2>Exclusive Deals</h2>
+        <p>Limited time offers</p>
+        <a href="#" class="btn-primary">Explore</a>
+      </div>
+    </div>
+    <div class="hero-slide">
+      <img src="{% static 'img/banner2.jpg' %}" alt="New Arrivals">
+      <div class="hero-content">
+        <h2>New Arrivals</h2>
+        <p>Check out the latest products</p>
+        <a href="#" class="btn-primary">Discover</a>
+      </div>
+    </div>
+  </div>
+</section>
 {% endif %}
 
-    <div class="product-grid">
+<!-- Subcategory Filter -->
+{% if subcategories %}
+<section class="filter-section">
+  <div class="container">
+    <div class="subcategory-filter">
+      <h3>Filter by Subcategory</h3>
+      <div class="filter-pills">
+        <a href="?category={{ selected_category }}" class="filter-pill {% if not selected_subcategory %}active{% endif %}">
+          All
+        </a>
+        {% for subcategory in subcategories %}
+          <a href="?category={{ selected_category }}&subcategory={{ subcategory.id }}" 
+             class="filter-pill {% if selected_subcategory == subcategory.id %}active{% endif %}">
+            {{ subcategory.name }}
+          </a>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- Products Section -->
+<section class="products-section">
+  <div class="container">
+    <div class="section-header">
+      <h1>{% if search_query %}Search Results{% elif selected_category %}{{ selected_category_name }}{% else %}Featured Products{% endif %}</h1>
+      <div class="sort-options">
+        <select class="sort-select">
+          <option>Sort by: Relevance</option>
+          <option>Price: Low to High</option>
+          <option>Price: High to Low</option>
+          <option>Newest First</option>
+          <option>Customer Rating</option>
+        </select>
+      </div>
+    </div>
+    
+    <div class="products-grid">
       {% for product in products %}
       <div class="product-card">
-        <h3>{{ product.name }}</h3>
-        <p class="price">&#8377 {{ product.price }}</p>
-        {% if product.image %}
-          <img src="{{ product.image.url }}" alt="{{ product.name }}">
-        {% else %}
-          <img src="{% static 'img/default-product.png' %}" alt="No Image Available">
-        {% endif %}
-        <a href="{% url 'product_detail' product.id %}" class="btn">View Details</a>
+        <div class="product-image">
+          {% if product.image %}
+            <img src="{{ product.image.url }}" alt="{{ product.name }}">
+          {% else %}
+            <img src="{% static 'img/default-product.png' %}" alt="No Image Available">
+          {% endif %}
+          <div class="product-overlay">
+            <button class="btn-icon wishlist-btn" title="Add to Wishlist">
+              <i class="far fa-heart"></i>
+            </button>
+            <button class="btn-icon quick-view-btn" title="Quick View">
+              <i class="fas fa-eye"></i>
+            </button>
+          </div>
+          {% if product.discount %}
+          <span class="product-badge">-{{ product.discount }}%</span>
+          {% endif %}
+        </div>
+        <div class="product-info">
+          <h3 class="product-title">{{ product.name }}</h3>
+          <div class="product-rating">
+            <div class="stars">
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="far fa-star"></i>
+            </div>
+            <span class="rating-count">(128)</span>
+          </div>
+          <div class="product-price">
+            <span class="price-current">₹{{ product.price }}</span>
+            {% if product.original_price %}
+            <span class="price-original">₹{{ product.original_price }}</span>
+            {% endif %}
+          </div>
+          <a href="{% url 'product_detail' product.id %}" class="btn-product">
+            View Details
+          </a>
+        </div>
       </div>
       {% endfor %}
     </div>
+    
+    {% if not products %}
+    <div class="empty-state">
+      <i class="fas fa-search"></i>
+      <h3>No products found</h3>
+      <p>Try adjusting your filters or search terms</p>
+      <a href="{% url 'home' %}" class="btn-primary">Browse All Products</a>
+    </div>
+    {% endif %}
   </div>
+</section>
 
-  <div class="about" id="about">
-    <div class="about-columns">
-      <div class="about-col">
-        <h3>Get to Know Us</h3>
+<!-- Features Section -->
+<section class="features-section">
+  <div class="container">
+    <div class="features-grid">
+      <div class="feature-card">
+        <i class="fas fa-truck"></i>
+        <h3>Free Shipping</h3>
+        <p>On orders over ₹499</p>
+      </div>
+      <div class="feature-card">
+        <i class="fas fa-shield-alt"></i>
+        <h3>Secure Payment</h3>
+        <p>100% secure transactions</p>
+      </div>
+      <div class="feature-card">
+        <i class="fas fa-undo"></i>
+        <h3>Easy Returns</h3>
+        <p>30-day return policy</p>
+      </div>
+      <div class="feature-card">
+        <i class="fas fa-headset"></i>
+        <h3>24/7 Support</h3>
+        <p>Dedicated customer service</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Newsletter Section -->
+<section class="newsletter-section">
+  <div class="container">
+    <div class="newsletter-content">
+      <div class="newsletter-text">
+        <h2>Subscribe to Our Newsletter</h2>
+        <p>Get the latest updates on new products and upcoming sales</p>
+      </div>
+      <form class="newsletter-form">
+        <input type="email" placeholder="Enter your email" required>
+        <button type="submit" class="btn-primary">Subscribe</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-content">
+      <div class="footer-section">
+        <h3>About MyShopee</h3>
+        <p>Your trusted destination for quality products and exceptional shopping experience.</p>
+        <div class="social-links">
+          <a href="#"><i class="fab fa-facebook"></i></a>
+          <a href="#"><i class="fab fa-twitter"></i></a>
+          <a href="#"><i class="fab fa-instagram"></i></a>
+          <a href="#"><i class="fab fa-linkedin"></i></a>
+        </div>
+      </div>
+      
+      <div class="footer-section">
+        <h4>Quick Links</h4>
         <ul>
           <li><a href="#">About Us</a></li>
-          <li><a href="#">Careers</a></li>
-          <li><a href="#">Press Releases</a></li>
-          <li><a href="#">Our Science</a></li>
+          <li><a href="#">Contact Us</a></li>
+          <li><a href="#">FAQs</a></li>
+          <li><a href="#">Shipping Info</a></li>
+          <li><a href="#">Return Policy</a></li>
         </ul>
       </div>
-
-      <div class="about-col">
-        <h3>Connect with Us</h3>
+      
+      <div class="footer-section">
+        <h4>Categories</h4>
         <ul>
-          <li><a href="https://www.linkedin.com/in/pranav-kothari-b30ba1267" target="_blank">LinkedIn</a></li>
-          <li><a href="https://x.com/thepranav13?t=nMmwAru13lKgmI9ytan9Zg&s=08" target="_blank">Twitter</a></li>
-          <li><a href="#" target="_blank">Instagram</a></li>
+          <li><a href="#">Electronics</a></li>
+          <li><a href="#">Fashion</a></li>
+          <li><a href="#">Home & Living</a></li>
+          <li><a href="#">Sports</a></li>
+          <li><a href="#">Books</a></li>
         </ul>
       </div>
-
-      <div class="about-col">
-        <h3>Make Money with Us</h3>
+      
+      <div class="footer-section">
+        <h4>Customer Service</h4>
         <ul>
-          <li><a href="#">Sell on Platform</a></li>
-          <li><a href="#">Become an Affiliate</a></li>
-          <li><a href="#">Advertise Products</a></li>
-          <li><a href="#">Self-Publish</a></li>
+          <li><a href="#">My Account</a></li>
+          <li><a href="#">Order Tracking</a></li>
+          <li><a href="#">Wishlist</a></li>
+          <li><a href="#">Customer Support</a></li>
+          <li><a href="#">Terms & Conditions</a></li>
         </ul>
       </div>
-
-      <div class="about-col">
-        <h3>Let Us Help You</h3>
-        <ul>
-          <li><a href="#">Your Account</a></li>
-          <li><a href="#">Returns Centre</a></li>
-          <li><a href="#">Help</a></li>
-          <li><a href="#">Download App</a></li>
-        </ul>
+      
+      <div class="footer-section">
+        <h4>Download App</h4>
+        <p>Shop on the go with our mobile app</p>
+        <div class="app-buttons">
+          <a href="#" class="app-button">
+            <i class="fab fa-google-play"></i>
+            <span>Google Play</span>
+          </a>
+          <a href="#" class="app-button">
+            <i class="fab fa-apple"></i>
+            <span>App Store</span>
+          </a>
+        </div>
       </div>
     </div>
-
-    <div class="about-footer">
-      <p>© 2025 MyShopee</p>
-      <div class="lang-country">
-        <select>
-          <option>English</option>
-          <option>Hindi</option>
-        </select>
-        <select>
-          <option>India</option>
-          <option>US</option>
-        </select>
+    
+    <div class="footer-bottom">
+      <p>&copy; 2025 MyShopee. All rights reserved.</p>
+      <div class="payment-methods">
+        <i class="fab fa-cc-visa"></i>
+        <i class="fab fa-cc-mastercard"></i>
+        <i class="fab fa-cc-paypal"></i>
+        <i class="fab fa-cc-amex"></i>
       </div>
     </div>
   </div>
+</footer>
 
-{% block content %}
-  {% endblock %}
-
-<!-- Chatbot Button -->
+<!-- Chatbot -->
 <div id="chatbot-button" onclick="toggleChatbot()">
-  <img src="{% static 'img/Chat_bot_icon.jpg' %}" alt="Chat"/>
+  <i class="fas fa-comments"></i>
 </div>
 
-<!-- Chatbot Window -->
 <div id="chatbot-window">
   <div id="chatbot-header">
-    <span>MyShopee Assistant</span>
-    <button onclick="toggleChatbot()">×</button>
+    <div class="chatbot-title">
+      <i class="fas fa-robot"></i>
+      <span>MyShopee Assistant</span>
+    </div>
+    <button onclick="toggleChatbot()" class="chatbot-close">
+      <i class="fas fa-times"></i>
+    </button>
   </div>
-  <div id="chatbot-content"></div>
+  <div id="chatbot-content">
+    <div class="chat-message bot-message">
+      <p>Hello! How can I help you today?</p>
+    </div>
+  </div>
+  <div class="chatbot-input">
+    <input type="text" placeholder="Type your message...">
+    <button><i class="fas fa-paper-plane"></i></button>
+  </div>
 </div>
 
-<!-- Include chatbot scripts -->
+<!-- Scripts -->
 <script src="{% static 'chatbot.js' %}"></script>
+<script>
+// Initialize Owl Carousel
+$(document).ready(function(){
+  $('.hero-slider').owlCarousel({
+    loop: true,
+    margin: 0,
+    nav: true,
+    dots: true,
+    autoplay: true,
+    autoplayTimeout: 5000,
+    autoplayHoverPause: true,
+    animateOut: 'fadeOut',
+    animateIn: 'fadeIn',
+    navText: ['<i class="fas fa-chevron-left"></i>', '<i class="fas fa-chevron-right"></i>'],
+    responsive: {
+      0: { items: 1 },
+      768: { items: 1 },
+      1024: { items: 1 }
+    }
+  });
+});
+
+// Toggle Sidebar
+function toggleSidebar() {
+  const sidebar = document.getElementById("sidebar");
+  const body = document.body;
+  
+  if (sidebar.classList.contains('active')) {
+    sidebar.classList.remove('active');
+    body.classList.remove('sidebar-open');
+  } else {
+    sidebar.classList.add('active');
+    body.classList.add('sidebar-open');
+  }
+}
+
+// Toggle Chatbot
+function toggleChatbot() {
+  const chatbot = document.getElementById('chatbot-window');
+  chatbot.classList.toggle('active');
+}
+
+// Dropdown Menu
+document.querySelectorAll('.dropdown').forEach(dropdown => {
+  dropdown.addEventListener('click', function(e) {
+    e.stopPropagation();
+    this.classList.toggle('active');
+  });
+});
+
+// Close dropdowns when clicking outside
+document.addEventListener('click', function() {
+  document.querySelectorAll('.dropdown').forEach(dropdown => {
+    dropdown.classList.remove('active');
+  });
+});
+
+// Wishlist Button
+document.querySelectorAll('.wishlist-btn').forEach(btn => {
+  btn.addEventListener('click', function(e) {
+    e.preventDefault();
+    this.classList.toggle('active');
+    const icon = this.querySelector('i');
+    icon.classList.toggle('far');
+    icon.classList.toggle('fas');
+  });
+});
+</script>
 
 </body>
 </html>

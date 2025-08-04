@@ -11,6 +11,9 @@
     .price-card { border: 1px solid #ddd; padding: 20px; border-radius: 12px; background: #f8f9fa; }
   </style>
   <meta name="csrf-token" content="{{ csrf_token }}">
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
 </head>
 <body>
 
@@ -106,21 +109,39 @@
         <form id="new-address-form">
           {% csrf_token %}
           <div class="row">
-            <div class="col-md-6 mb-2"><input type="text" class="form-control" name="full_name" placeholder="Full Name" required></div>
-            <div class="col-md-6 mb-2"><input type="text" class="form-control" name="phone_number" placeholder="Phone Number" required></div>
+            <div class="col-md-6 mb-2"><input type="text" id="full_name" class="form-control" name="full_name" placeholder="Full Name" required></div>
+            <div class="col-md-6 mb-2"><input type="text" id="phone_number" class="form-control" name="phone_number" placeholder="Phone Number" required></div>
           </div>
-          <div class="mb-2"><textarea class="form-control" name="address_line_1" placeholder="Address" required></textarea></div>
+          <div class="mb-2"><textarea class="form-control" id="address_line_1" name="address_line_1" placeholder="Address" required></textarea></div>
           <div class="row">
-            <div class="col-md-4 mb-2"><input type="text" class="form-control" name="city" placeholder="City" required></div>
-            <div class="col-md-4 mb-2"><input type="text" class="form-control" name="state" placeholder="State" required></div>
-            <div class="col-md-4 mb-2"><input type="text" class="form-control" name="postal_code" placeholder="Pincode" required></div>
+            <div class="col-md-4 mb-2"><input type="text" id="city" class="form-control" name="city" placeholder="City" required></div>
+            <div class="col-md-4 mb-2"><input type="text" id="state" class="form-control" name="state" placeholder="State" required></div>
+            <div class="col-md-4 mb-2"><input type="text" id="pincode" class="form-control" name="pincode" placeholder="Pincode" required></div>
           </div>
-          <button type="button" class="btn btn-success w-100" onclick="saveAddressAndPlaceOrder()">Save & Place Order</button>
+          <button type="button" class="btn btn-primary w-100 mb-2" onclick="saveNewAddress()">Save Address</button>
+          <button type="button" class="btn btn-success w-100" onclick="proceedToPayment()">Proceed to Payment</button>
         </form>
       </div>
     </div>
   </div>
 </div>
+
+<!-- Payment Modal -->
+<div class="modal fade" id="paymentModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5>Select Payment Method</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <button class="btn btn-success w-100 mb-2" onclick="initiateRazorpay()">Pay Online</button>
+        <button class="btn btn-outline-secondary w-100" onclick="placeCODOrder()">Cash on Delivery</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
@@ -141,52 +162,154 @@ function updateQuantity(productId, action) {
   });
 }
 
-function saveAddressAndPlaceOrder() {
-  const form = document.getElementById('new-address-form');
-  const formData = new FormData(form);
+function saveNewAddress() {
+    let full_name = $('#full_name').val();
+    let phone_number = $('#phone_number').val();
+    let address_line_1 = $('#address_line_1').val();
+    let city = $('#city').val();
+    let state = $('#state').val();
+    let pincode = $('#pincode').val();
 
-  const selectedAddress = document.querySelector('input[name="selected_address"]:checked');
-  if (selectedAddress) {
-    formData.append('address_id', selectedAddress.value);
-  } else {
-    // check if new address form fields are filled
-    const fullName = form.querySelector('input[name="full_name"]').value.trim();
-    const phoneNumber = form.querySelector('input[name="phone_number"]').value.trim();
-    const addressLine = form.querySelector('textarea[name="address_line_1"]').value.trim();
-    const city = form.querySelector('input[name="city"]').value.trim();
-    const state = form.querySelector('input[name="state"]').value.trim();
-    const postalCode = form.querySelector('input[name="postal_code"]').value.trim();
+    $.ajax({
+        type: 'POST',
+        url: '/add_address_ajax/',
+        data: {
+            'full_name': full_name,
+            'phone_number': phone_number,
+            'address_line_1': address_line_1,
+            'city': city,
+            'state': state,
+            'pincode': pincode,
+            'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
+        },
+        success: function(response) {
+            if (response.success) {
+                // Append new address radio button dynamically
+                let newAddressHTML = `
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="selected_address"
+                        id="address${response.address_id}" value="${response.address_id}" checked>
+                    <label class="form-check-label" for="address${response.address_id}">
+                        <strong>${response.full_name}</strong>, ${response.address_line_1}, ${response.city}, ${response.state} - ${response.pincode}
+                        | 📞 ${response.phone_number}
+                    </label>
+                </div>`;
+                $('.modal-body .mb-3').append(newAddressHTML);
+                // Clear form fields
+                $('#new-address-form')[0].reset();
+            } else {
+                alert(response.message);
+            }
+        },
+        error: function() {
+            alert('Failed to save address.');
+        }
+    });
+}
 
-    if (!fullName || !phoneNumber || !addressLine || !city || !state || !postalCode) {
-      alert('Please either select an existing address or fill all new address fields!');
-      return;
-    }
-
-    // Append form fields (optional if your backend expects them via POST)
-    formData.append('full_name', fullName);
-    formData.append('phone_number', phoneNumber);
-    formData.append('address_line_1', addressLine);
-    formData.append('city', city);
-    formData.append('state', state);
-    formData.append('pincode', postalCode);
+function proceedToPayment() {
+  let selectedAddressId = $('input[name="selected_address"]:checked').val();
+  if (!selectedAddressId) {
+    alert("Please select a delivery address before proceeding.");
+    return;
   }
-  
+
+  // Clear previous addressFormData
+  addressFormData = new FormData();
+  addressFormData.append('address_id', selectedAddressId);
+
+  // Close address modal, open payment modal
+  var addressModal = bootstrap.Modal.getInstance(document.getElementById('addressModal'));
+  addressModal.hide();
+
+  var paymentModal = new bootstrap.Modal(document.getElementById('paymentModal'));
+  paymentModal.show();
+}
+
+
+
+function placeCODOrder() {
+  if (!addressFormData) {
+    alert("Please provide address first!");
+    return;
+  }
+
   const csrftoken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+  addressFormData.append('payment_method', 'COD');
+
   fetch('/cart/place_order/', {
     method: 'POST',
     headers: { 'X-CSRFToken': csrftoken },
-    body: formData
+    body: addressFormData
   })
   .then(response => response.json())
   .then(data => {
     if (data.success) {
-      alert(`✅ Order placed successfully!\nOrder No: ${data.order_number}\nDelivery: ${data.delivery_date}`);
-      window.location.href = "{% url 'home' %}";
+      window.location.href = "/order_success/" + data.order_number + "/";
     } else {
       alert(data.message);
     }
   });
 }
+
+function initiateRazorpay() {
+  
+  // Append payment method
+  addressFormData.append('payment_method', 'ONLINE');
+
+  // Get final cart amount from the cart summary section
+  const cartAmount = document.getElementById('final-amount').innerText;
+
+  // Append the total amount (in rupees) to the form data
+  addressFormData.append('total_amount', cartAmount);
+
+  const csrftoken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+  fetch('/cart/create_payment_order/', {
+    method: 'POST',
+    headers: { 'X-CSRFToken': csrftoken },
+    body: addressFormData
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      var options = {
+        "key": "rzp_test_Ai6oeBbFCLdyQ7", // replace with your test key
+        "amount": data.amount, // amount in paise
+        "currency": "INR",
+        "name": "MyShopee",
+        "description": "Order Payment",
+        "order_id": data.razorpay_order_id,
+        "handler": function (response){
+          // on successful payment
+          window.location.href = "/order_success/" + data.order_number + "/";
+        },
+        "prefill": {
+          "name": data.customer_name,
+          "email": data.customer_email,
+          "contact": data.customer_phone
+        },
+        "theme": {
+          "color": "#3399cc"
+        },
+        "method": {
+          "upi": true,
+          "card": true,
+          "netbanking": true,
+          "wallet": true
+        },
+      };
+      
+      var rzp = new Razorpay(options);
+      rzp.open();
+    } else {
+      alert(data.message);
+    }
+  });
+}
+
+
+
 
 
 

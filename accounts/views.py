@@ -12,10 +12,10 @@ import re
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .decorators import seller_required
-from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from .forms import ProductForm
-from .models import Seller, ProductListing, Product,Subcategory,Address
+from .forms import ProductReviewForm
+from .models import Seller, ProductListing, Product,Subcategory,Address,Order,ProductReview
 import random
 from .models import CartItem, Order, OrderItem
 from django.utils import timezone
@@ -25,8 +25,21 @@ from django.db.models import F, Sum, FloatField
 from django.core.mail import send_mail
 from .forms import AddressForm
 from .models import Address
+import razorpay
+from .forms import ProfileForm
+import pandas as pd
+from openpyxl.drawing.image import Image as ExcelImage
+from io import BytesIO
+from django.core.files.base import ContentFile
+from django.db.models import Q
+from django.db import models
+from django.utils.timezone import now
+from .models import WishlistRequest
+from .forms import WishlistRequestForm
+from django.db.models import OuterRef, Exists
+from django.shortcuts import render, redirect, get_object_or_404
 
-
+client = razorpay.Client(auth=("rzp_test_Ai6oeBbFCLdyQ7", "D6aHM59vpvwEo267Yzyv0xhW"))
 
 #from .models import Product
 
@@ -55,7 +68,15 @@ def home(request):
     min_price = request.GET.get('min_price')
     max_price = request.GET.get('max_price')
 
-    products = Product.objects.all()
+    approved_listings = ProductListing.objects.filter(
+        product=OuterRef('pk'),
+        supervisor_status='approved',
+        admin_status='approved'
+    )
+
+    products = Product.objects.annotate(
+        has_approved_listing=Exists(approved_listings)
+    ).filter(has_approved_listing=True)
 
     # Search filter
     if search_query:
@@ -105,18 +126,35 @@ def home(request):
 
 
 
-def product_detail(request, id):
-    product = Product.objects.get(id=id)
-    return render(request, 'product_detail.html', {
-        'product':product
-    })
+def product_detail(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+    user = request.user
+
+    has_purchased = False
+    has_reviewed = False
+
+    if user.is_authenticated:
+        has_purchased = OrderItem.objects.filter(order__user=user, product=product).exists()
+        has_reviewed = ProductReview.objects.filter(user=user, product=product).exists()
+
+    reviews = ProductReview.objects.filter(product=product)
+
+    context = {
+        'product': product,
+        'has_purchased': has_purchased,
+        'has_reviewed': has_reviewed,
+        'reviews': reviews,
+    }
+    return render(request, 'product_detail.html', context)
+
+
 
 
 @csrf_exempt
 def product_autocomplete(request):
-    query = request.GET.get('term', '')  # jQuery uses `term` by default
+    query = request.GET.get('term', '')
     products = Product.objects.filter(name__icontains=query)[:10]
-    results = [product.name for product in products]
+    results = [{'label': product.name, 'value': product.name} for product in products]
     return JsonResponse(results, safe=False)
 
 def about_view(request):
@@ -315,89 +353,45 @@ def cart_json_response(request, product_id):
 
 
 
-@login_required
-def add_product(request):
-    if request.user.profile.role != 'seller':
-        return redirect('home')
-
-    seller = get_object_or_404(Seller, user=request.user)
-
-    if request.method == 'POST':
-        name = request.POST['name']
-        price = request.POST['price']
-        discount_price = request.POST.get('discount_price') or None
-        stock = request.POST['stock']
-        description = request.POST['description']
-        image = request.FILES.get('image')
-        category_id = request.POST['category']
-        subcategory_id = request.POST.get('subcategory') or None
-
-        category = Category.objects.get(id=category_id)
-        subcategory = Subcategory.objects.get(id=subcategory_id) if subcategory_id else None
-
-        product = Product.objects.create(
-            name=name,
-            price=price,
-            discount_price=discount_price,
-            stock=stock,
-            description=description,
-            image=image,
-            category=category,
-            subcategory=subcategory
-        )
-
-        ProductListing.objects.create(
-            product=product,
-            seller=seller,
-            price=price,
-            stock=stock,
-            is_approved=False
-        )
-
-        messages.success(request, "Product submitted for admin approval.")
-        return redirect('seller_dashboard')
-
-    categories = Category.objects.all()
-    subcategories = Subcategory.objects.all()
-
-    return render(request, 'add_product.html', {
-        'categories': categories,
-        'subcategories': subcategories
-    })
-
-
 def delete_product(request, product_id):
     product = get_object_or_404(Product, id=product_id)
     product.delete()
     return redirect('product_list')
 
+
+
 @login_required
 def seller_dashboard(request):
-    if request.user.profile.role != 'seller':
-        return redirect('home')
+    seller = Seller.objects.get(user=request.user)
 
-    seller = get_object_or_404(Seller, user=request.user)
+    # Show all except rejected
+    listings = ProductListing.objects.filter(seller=seller).exclude(
+        Q(supervisor_status='rejected') | Q(admin_status='rejected')
+    )
 
-    approved_listings = ProductListing.objects.filter(seller=seller, is_approved=True)
-    seller_products = approved_listings.values_list('product', flat=True)
+    # Recently rejected listings (within 1 day)
+    rejected_listings = ProductListing.objects.filter(seller=seller).filter(
+        Q(supervisor_status='rejected') | Q(admin_status='rejected'),
+        listed_date__gte=now() - timedelta(days=1)
+    )
 
-    order_items = OrderItem.objects.filter(listing__in=approved_listings)
+    total_orders = Order.objects.filter(items__listing__seller=seller).count()
+    total_sales = OrderItem.objects.filter(listing__seller=seller).aggregate(
+        total=models.Sum('price'))['total'] or 0
+    total_products = ProductListing.objects.filter(seller=seller).count()
 
-    total_orders = order_items.values('order').distinct().count()
-    total_sales = order_items.aggregate(
-        total=Sum(F('price') * F('quantity'), output_field=FloatField())
-    )['total'] or 0
+    # ✅ NEW: Fetch approved wishlist requests
+    approved_wishlist = WishlistRequest.objects.filter(status='approved')
 
-    total_products = approved_listings.count()
-
-    context = {
-        'listings': approved_listings,
+    return render(request, 'seller_dashboard.html', {
+        'listings': listings,
+        'rejected_listings': rejected_listings,
         'total_orders': total_orders,
         'total_sales': total_sales,
         'total_products': total_products,
-    }
+        'approved_wishlist': approved_wishlist,  # ✅ pass to template
+    })
 
-    return render(request, 'seller_dashboard.html', context)
 
 @login_required
 def edit_listing(request, listing_id):
@@ -427,8 +421,6 @@ def delete_listing(request, listing_id):
 def generate_order_number():
     return 'ORD' + str(random.randint(10000, 99999))
 
-from django.http import JsonResponse
-import traceback
 
 def place_order(request):
     if request.method == 'POST':
@@ -467,7 +459,7 @@ def place_order(request):
                 subtotal = item.product.price * item.quantity
                 total_price += subtotal
 
-                listing = ProductListing.objects.filter(product=item.product, is_approved=True).first()
+                listing = ProductListing.objects.filter(product=item.product, status='approved').first()
 
                 OrderItem.objects.create(
                     order=order,
@@ -544,17 +536,19 @@ def get_price_range(request, subcategory_id):
 @csrf_exempt
 def log_chat_message(request):
     if request.method == 'POST':
-        data = json.loads(request.body)
-        ChatbotLog.objects.create(
-            session_id=data.get('session_id'),
-            page=data.get('page'),
-            message=data.get('message'),
-            message_by=data.get('message_by'),
-            ip_address=request.META.get('REMOTE_ADDR'),
-            user_agent=request.META.get('HTTP_USER_AGENT')
-        )
-        return JsonResponse({'status': 'success'})
+        try:
+            data = json.loads(request.body.decode('utf-8'))
+            user_message = data.get('message', '')
+            
+            # You can later store it or do more, but for now:
+            print(f"User message received: {user_message}")
+
+            return JsonResponse({'status': 'success', 'message': 'Logged successfully'})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
     
+    return JsonResponse({'error': 'Only POST allowed'}, status=405)
+
 @login_required
 def add_address(request):
     if request.method == 'POST':
@@ -568,3 +562,407 @@ def add_address(request):
         form = AddressForm()
     
     return render(request, 'add_address.html', {'form': form})
+
+
+
+
+
+
+@csrf_exempt
+def create_payment_order(request):
+    if request.method == 'POST':
+        try:
+            # Read amount from POST data (sent via AJAX)
+            amount_in_rupees = request.POST.get('total_amount')
+            
+            if not amount_in_rupees:
+                return JsonResponse({'success': False, 'message': 'Cart amount missing'})
+
+            # Convert rupees to paise for Razorpay
+            amount = int(float(amount_in_rupees) * 100)
+
+            # Create Razorpay order
+            payment = client.order.create({
+                "amount": amount,
+                "currency": "INR",
+                "payment_capture": '1'
+            })
+
+            # Optionally fetch other form fields if you need (like full name, phone)
+            customer_name = request.POST.get('full_name', 'Guest User')
+            customer_phone = request.POST.get('phone_number', '9999999999')
+            customer_email = 'test@example.com'  # if you had email input
+
+            # Generate order number (real projects: use a model or UUID)
+            import random
+            order_number = 'ORD' + str(random.randint(1000, 9999))
+
+            return JsonResponse({
+                'success': True,
+                'razorpay_order_id': payment['id'],
+                'amount': amount,
+                'customer_name': customer_name,
+                'customer_email': customer_email,
+                'customer_phone': customer_phone,
+                'order_number': order_number
+            })
+
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)})
+
+    return JsonResponse({'success': False, 'message': 'Invalid request method'})
+
+def order_success(request, order_number):
+    try:
+        order = Order.objects.get(order_number=order_number)
+        order_items = order.items.all()
+
+        total_items = order_items.count()
+        grand_total = sum(item.subtotal() for item in order_items)
+
+        context = {
+            'order_number': order_number,
+            'order': order,
+            'order_items': order_items,
+            'total_items': total_items,
+            'grand_total': grand_total
+        }
+        return render(request, 'order_success.html', context)
+
+    except Order.DoesNotExist:
+        messages.error(request, "Order not found.")
+        return redirect('home')
+
+
+def my_orders(request):
+    orders = Order.objects.filter(user=request.user).order_by('-order_date').prefetch_related('items__product')
+    return render(request, 'orders.html', {'orders': orders})
+
+def my_profile(request):
+    return render(request, 'my_profile.html')
+
+
+def edit_profile(request):
+    if request.method == 'POST':
+        form = ProfileForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            return redirect('my_profile')
+    else:
+        form = ProfileForm(instance=request.user)
+    return render(request, 'edit_profile.html', {'form': form})
+
+@login_required
+def add_address(request):
+    if request.method == 'POST':
+        form = AddressForm(request.POST)
+        if form.is_valid():
+            address = form.save(commit=False)
+            address.user = request.user
+            address.save()
+            return redirect('my_profile')
+    else:
+        form = AddressForm()
+    return render(request, 'add_address.html', {'form': form})
+
+@login_required
+def edit_address(request, address_id):
+    address = get_object_or_404(Address, id=address_id, user=request.user)
+    if request.method == 'POST':
+        form = AddressForm(request.POST, instance=address)
+        if form.is_valid():
+            form.save()
+            return redirect('my_profile')
+    else:
+        form = AddressForm(instance=address)
+    return render(request, 'edit_address.html', {'form': form})
+
+@login_required
+def delete_address(request, address_id):
+    address = get_object_or_404(Address, id=address_id, user=request.user)
+    address.delete()
+    return redirect('my_profile')
+
+
+
+def add_product(request):
+    if request.user.profile.role != 'seller':
+        return redirect('home')
+
+    seller = get_object_or_404(Seller, user=request.user)
+    categories = Category.objects.all()
+    subcategories = Subcategory.objects.all()
+    wishlist_id = request.GET.get('wishlist_id')  # optional
+
+    wishlist_obj = None
+    if wishlist_id:
+        wishlist_obj = get_object_or_404(WishlistRequest, id=wishlist_id, status='approved')
+
+    if request.method == 'POST':
+        form_type = request.POST.get('form_type')
+
+        if form_type == 'individual':
+            name = request.POST['name']
+            price = request.POST['price']
+            discount_price = request.POST.get('discount_price') or None
+            stock = request.POST['stock']
+            description = request.POST['description']
+            image = request.FILES.get('image')
+            category_id = request.POST['category']
+            subcategory_id = request.POST.get('subcategory') or None
+
+            category = get_object_or_404(Category, id=category_id)
+            subcategory = Subcategory.objects.get(id=subcategory_id) if subcategory_id else None
+
+            product = Product.objects.create(
+                name=name,
+                price=price,
+                discount_price=discount_price,
+                stock=stock,
+                description=description,
+                image=image,
+                category=category,
+                subcategory=subcategory
+            )
+
+            ProductListing.objects.create(
+                product=product,
+                seller=seller,
+                price=price,
+                stock=stock,
+                supervisor_status='waiting',
+                admin_status='waiting'
+            )
+            admin_emails = list(User.objects.filter(is_superuser=True).values_list('email', flat=True))
+            supervisor_emails = list(User.objects.filter(profile__role='supervisor').values_list('email', flat=True))
+
+            subject = f"New Product Submitted: {product.name}"
+            message = f"A new product '{product.name}' has been submitted by seller '{request.user.username}' for approval."
+            send_mail(subject, message, 'myshopee762@gmail.com', admin_emails + supervisor_emails)
+
+            # ✅ If product was added via wishlist request
+            if wishlist_obj:
+                wishlist_obj.status = 'fulfilled'
+                wishlist_obj.save()
+                messages.success(request, f"Product from wishlist '{wishlist_obj.product_name}' added and marked as fulfilled.")
+            else:
+                messages.success(request, "Product submitted for admin approval.")
+
+            return redirect('seller_dashboard')
+
+        elif form_type == 'bulk':
+            product_file = request.FILES.get('product_file')
+            image_files = request.FILES.getlist('bulk_images')
+
+            if not product_file:
+                messages.error(request, "No file uploaded.")
+                return redirect('add_product')
+
+            try:
+                image_map = {}
+                for image in image_files:
+                    base_name = os.path.splitext(image.name)[0].replace(' ', '_').lower()
+                    image_map[base_name] = image
+
+                df = pd.read_excel(product_file)
+
+                for index, row in df.iterrows():
+                    category = Category.objects.get(name=row['Category'])
+                    subcategory = None
+                    if not pd.isna(row.get('Subcategory')):
+                        subcategory = Subcategory.objects.get(name=row['Subcategory'], category=category)
+
+                    product, created = Product.objects.get_or_create(
+                        name=row['Product Name'],
+                        defaults={
+                            'price': row['Price'],
+                            'discount_price': row.get('Discount Price', None),
+                            'stock': row['Stock'],
+                            'description': row['Description'],
+                            'category': category,
+                            'subcategory': subcategory,
+                        }
+                    )
+
+                    if created and not pd.isna(row.get('Image Filename')):
+                        image_key = str(row['Image Filename']).replace(' ', '_').lower()
+                        if image_key in image_map:
+                            image_file = image_map[image_key]
+                            product.image.save(image_file.name, image_file, save=True)
+
+                    ProductListing.objects.create(
+                        product=product,
+                        seller=seller,
+                        price=row['Price'],
+                        stock=row['Stock'],
+                        status='waiting'
+                    )
+
+                messages.success(request, "Products uploaded successfully.")
+                return redirect('seller_dashboard')
+
+            except Exception as e:
+                print("Bulk upload error:", e)
+                messages.error(request, f"Error uploading products: {e}")
+                return redirect('add_product')
+
+    # If GET method and wishlist_id present, optionally pre-fill (your template must support this)
+    initial_data = {}
+    if wishlist_obj:
+        initial_data = {
+            'name': wishlist_obj.product_name,
+            'description': wishlist_obj.description,
+            'category': wishlist_obj.category,
+            'subcategory': wishlist_obj.subcategory,
+        }
+
+    return render(request, 'add_product.html', {
+        'categories': categories,
+        'subcategories': subcategories,
+        'initial_data': initial_data,
+        'wishlist_id': wishlist_id,
+    })
+
+
+@csrf_exempt
+@login_required
+def add_address_ajax(request):
+    if request.method == 'POST':
+        full_name = request.POST.get('full_name')
+        phone_number = request.POST.get('phone_number')
+        address_line_1 = request.POST.get('address_line_1')
+        city = request.POST.get('city')
+        state = request.POST.get('state')
+        pincode = request.POST.get('pincode')
+
+        address = Address.objects.create(
+            user=request.user,
+            full_name=full_name,
+            phone_number=phone_number,
+            address_line_1=address_line_1,
+            city=city,
+            state=state,
+            pincode=pincode
+        )
+
+        return JsonResponse({
+            'success': True,
+            'address_id': address.id,
+            'full_name': address.full_name,
+            'phone_number': address.phone_number,
+            'address_line_1': address.address_line_1,
+            'city': address.city,
+            'state': address.state,
+            'pincode': address.pincode
+        })
+    else:
+        return JsonResponse({'success': False, 'message': 'Invalid request'})
+
+@login_required
+def supervisor_approve_listing(request, listing_id):
+    if not request.user.profile.role == 'supervisor':
+        return HttpResponseForbidden("You are not authorized to approve.")
+
+    listing = get_object_or_404(ProductListing, id=listing_id)
+    listing.supervisor_status = 'approved'
+    listing.save()
+    return redirect('supervisor_dashboard')
+
+
+@login_required
+def admin_approve_listing(request, listing_id):
+    if not request.user.is_superuser:
+        return HttpResponseForbidden("Only admin can approve.")
+
+    listing = get_object_or_404(ProductListing, id=listing_id)
+    if listing.supervisor_status != 'approved':
+        return HttpResponseBadRequest("Supervisor approval pending.")
+    listing.admin_status = 'approved'
+    listing.save()
+    seller_emails = list(User.objects.filter(profile__role='seller').values_list('email', flat=True))
+    subject = f"Approved Wishlist Item: {wishlist.product_name}"
+    message = f"A wishlist request has been approved for product: {wishlist.product_name}\nDescription: {wishlist.description}"
+    send_mail(subject, message, 'myshopee762@gmail.com', seller_emails)
+    return redirect('admin_dashboard')
+
+
+
+# Buyer Wishlist Submission
+@login_required
+def my_wishlist(request):
+    if request.method == 'POST':
+        form = WishlistRequestForm(request.POST)
+        if form.is_valid():
+            wishlist = form.save(commit=False)
+            wishlist.user = request.user
+            wishlist.save()
+            admin_emails = list(User.objects.filter(is_superuser=True).values_list('email', flat=True))
+            subject = f"New Wishlist Request from {request.user.username}"
+            message = f"{request.user.username} has submitted a wishlist request for '{wishlist.product_name}'.\n\nDescription: {wishlist.description}"
+            send_mail(subject, message, 'myshopee762@gmail.com', admin_emails)
+            messages.success(request, "Your wishlist request was submitted!")
+            return redirect('my_wishlist')
+    else:
+        form = WishlistRequestForm()
+
+    requests = WishlistRequest.objects.filter(user=request.user)
+    return render(request, 'my_wishlist.html', {'form': form, 'requests': requests})
+
+# Seller View for Approved Wishlist
+@login_required
+def wishlist_suggestions(request):
+    seller = Seller.objects.get(user=request.user)
+    approved_requests = WishlistRequest.objects.filter(status='approved')
+    return render(request, 'wishlist_suggestions.html', {'requests': approved_requests})
+
+def userinfo(request):
+    user = request.user
+    name = user.get_full_name() if user.is_authenticated else "Guest"
+    return JsonResponse({'name': name})
+
+# 2. POST log message
+@csrf_exempt
+def log_message(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            print("Logged message:", data)  # for testing
+            return JsonResponse({'status': 'success'})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+        
+
+@login_required
+def my_reviews(request):
+    reviews = ProductReview.objects.filter(user=request.user)
+    return render(request, 'my_reviews.html', {'reviews': reviews})
+
+
+@login_required
+def add_product_review(request, product_id):
+    product = get_object_or_404(Product, pk=product_id)
+
+    # Check if the user bought the product
+    has_purchased = OrderItem.objects.filter(order__user=request.user, product=product).exists()
+    if not has_purchased:
+        messages.error(request, "You can only review products you have purchased.")
+        return redirect('product_detail', product_id=product_id)
+
+    # Check if user already reviewed
+    if ProductReview.objects.filter(user=request.user, product=product).exists():
+        messages.warning(request, "You have already reviewed this product.")
+        return redirect('product_detail', product_id=product_id)
+
+    if request.method == 'POST':
+        form = ProductReviewForm(request.POST)
+        if form.is_valid():
+            review = form.save(commit=False)
+            review.user = request.user
+            review.product = product
+            review.save()
+            messages.success(request, "Thanks for reviewing!")
+            return redirect('product_detail', product_id=product.id)
+    else:
+        form = ProductReviewForm()
+
+    return render(request, 'add_review.html', {'form': form, 'product': product})

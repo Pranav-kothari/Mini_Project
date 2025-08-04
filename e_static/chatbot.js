@@ -1,8 +1,9 @@
-
+let isChatInitialized=false;
 function initializeChat() {
-   var content = document.getElementById("chatbot-content");
-   content.innerHTML = "";
-   fetchUserName();
+  if (isChatInitialized) return; // Prevent re-clearing
+  isChatInitialized = true;
+
+  fetchUserName();
 }
 
 function appendBotMessage(message) {
@@ -11,6 +12,7 @@ function appendBotMessage(message) {
   msg.classList.add("bot-message");
   msg.textContent = "🤖: " + message;
   content.appendChild(msg);
+  logChatMessage(message, 'bot');
   scrollChatToBottom();
 }
 
@@ -20,8 +22,10 @@ function appendUserMessage(message) {
   msg.classList.add("user-message");
   msg.textContent = "🧑: " + message;
   content.appendChild(msg);
+  logChatMessage(message, 'user');
   scrollChatToBottom();
 }
+
 
 function fetchCategories() {
   fetch("/api/categories/")
@@ -179,18 +183,17 @@ function fetchUserName() {
 
 
 function toggleChatbot() {
-  var chatbot = document.getElementById("chatbot-window");
-  var button = document.getElementById("chatbot-button");
-
-  if (chatbot.style.display === "flex") {
-    chatbot.style.display = "none";
-    button.style.opacity = "1";
-  } else {
-    chatbot.style.display = "flex";
-    button.style.opacity = "0";
-    initializeChat();
-  }
+    const chatbot = document.getElementById('chatbot-window');
+    if (chatbot.classList.contains('is-open')) {
+        chatbot.classList.remove('is-open');
+        chatbot.classList.add('is-closed');
+    } else {
+        chatbot.classList.remove('is-closed');
+        chatbot.classList.add('is-open');
+        initializeChat();
+    }
 }
+
 
 
 function scrollChatToBottom() {
@@ -198,7 +201,6 @@ function scrollChatToBottom() {
   content.scrollTop = content.scrollHeight;
 }
 
-window.addEventListener("load", initializeChat);
 
 
 function logChatMessage(message, by) {
@@ -217,25 +219,7 @@ function logChatMessage(message, by) {
   });
 }
 
-function appendBotMessage(message) {
-  var content = document.getElementById("chatbot-content");
-  var msg = document.createElement("p");
-  msg.classList.add("bot-message");
-  msg.textContent = "🤖: " + message;
-  content.appendChild(msg);
-  logChatMessage(message, 'bot');
-  scrollChatToBottom();
-}
 
-function appendUserMessage(message) {
-  var content = document.getElementById("chatbot-content");
-  var msg = document.createElement("p");
-  msg.classList.add("user-message");
-  msg.textContent = "🧑: " + message;
-  content.appendChild(msg);
-  logChatMessage(message, 'user');
-  scrollChatToBottom();
-}
 
 function getCookie(name) {
   let cookieValue = null;
