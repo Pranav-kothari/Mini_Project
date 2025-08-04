@@ -636,6 +636,36 @@
       to { width: 0%; }
     }
 
+    /* Review Button Styles */
+    .btn {
+      display: inline-block;
+      padding: 12px 24px;
+      margin-top: 15px;
+      background: var(--accent-gradient);
+      color: white;
+      text-decoration: none;
+      border-radius: 25px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      border: none;
+      cursor: pointer;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-primary {
+      background: var(--primary-gradient);
+    }
+
+    .text-success {
+      color: #38a169;
+      font-weight: 500;
+      margin-top: 15px;
+    }
+
     /* Responsive Design */
     @media(max-width: 1024px) {
       .container {
@@ -851,21 +881,29 @@
 
       <div class="action-section">
         <div class="action-buttons">
-          <!-- <button class="buy-btn">Buy Now</button> -->
-          <form method="post" action="{% url 'add_to_cart' product.id %}" class="add-to-cart-form">
-            {% csrf_token %}
-            <input type="number" name="quantity" value="1" min="1" class="quantity-input">
-            <button type="submit" class="cart-btn">
-              <span class="cart-icon">🛒</span>
-              Add to Cart
-            </button>
-          </form>
+          <!-- Check if user is authenticated before showing the form -->
+          {% if user.is_authenticated %}
+            <form method="post" action="{% url 'add_to_cart' product.id %}" class="add-to-cart-form" id="cart-form">
+              {% csrf_token %}
+              <input type="number" name="quantity" value="1" min="1" class="quantity-input">
+              <button type="submit" class="cart-btn" id="cart-button">
+                <span class="cart-icon">🛒</span>
+                Add to Cart
+              </button>
+            </form>
+          {% else %}
+            <div style="text-align: center; padding: 20px;">
+              <p style="margin-bottom: 15px; color: #666;">Please log in to add items to cart</p>
+              <a href="{% url 'login' %}" class="btn btn-primary">Login</a>
+            </div>
+          {% endif %}
         </div>
+        
         {% if user.is_authenticated %}
           {% if has_purchased and not has_reviewed %}
-            <a href="{% url 'add_product_review' product.id %}" class="btn btn-primary mt-3">Write a Review</a>
+            <a href="{% url 'add_product_review' product.id %}" class="btn btn-primary">Write a Review</a>
           {% elif has_reviewed %}
-            <p class="text-success mt-3">You have already reviewed this product.</p>
+            <p class="text-success">You have already reviewed this product.</p>
           {% endif %}
         {% endif %}
       </div>
@@ -921,34 +959,72 @@
         lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
       });
 
-      // Enhanced form submission
-      const form = document.querySelector(".add-to-cart-form");
+      // Handle form submission with AJAX for better user experience
+      const form = document.getElementById("cart-form");
       if (form) {
         form.addEventListener('submit', function(e) {
-          e.preventDefault();
+          e.preventDefault(); // Prevent default form submission
+          
+          const cartBtn = document.getElementById("cart-button");
+          const originalContent = cartBtn.innerHTML;
           
           // Show loading state
-          const cartBtn = form.querySelector(".cart-btn");
-          const originalText = cartBtn.innerHTML;
           cartBtn.innerHTML = '<span class="cart-icon">⟳</span> Adding...';
+          cartBtn.disabled = true;
           cartBtn.style.opacity = '0.7';
           
-          // Simulate form submission (replace with actual AJAX call)
-          setTimeout(() => {
-            // Show toast notification
-            showToast('Item added to cart successfully!');
-            
-            // Reset button
-            cartBtn.innerHTML = originalText;
+          // Get form data
+          const formData = new FormData(form);
+          
+          // Send AJAX request
+          fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest',
+              'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              // Show success message
+              showToast(`${data.item_name} (Qty: ${data.item_quantity}) added to cart!`);
+              
+              // Update cart count in navbar if you have one
+              updateCartCount(data.cart_total_items);
+              
+              // Reset form
+              form.reset();
+              form.querySelector('input[name="quantity"]').value = 1;
+            } else {
+              showToast('Error adding item to cart. Please try again.', 'error');
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            showToast('Error adding item to cart. Please try again.', 'error');
+          })
+          .finally(() => {
+            // Reset button state
+            cartBtn.innerHTML = originalContent;
+            cartBtn.disabled = false;
             cartBtn.style.opacity = '1';
-          }, 1000);
+          });
         });
       }
     });
 
-    function showToast(message) {
+    function showToast(message, type = 'success') {
       const toast = document.getElementById('toast');
       const messageEl = document.getElementById('toast-message');
+      
+      // Update toast styles based on type
+      if (type === 'error') {
+        toast.style.setProperty('--toast-bg', 'linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%)');
+      } else {
+        toast.style.setProperty('--toast-bg', 'var(--success-gradient)');
+      }
       
       messageEl.textContent = message;
       toast.classList.add('show');
@@ -957,6 +1033,14 @@
       setTimeout(() => {
         toast.classList.remove('show');
       }, 3000);
+    }
+
+    function updateCartCount(count) {
+      // Update cart count in navbar if you have a cart counter element
+      const cartCountElement = document.querySelector('.cart-count');
+      if (cartCountElement) {
+        cartCountElement.textContent = count;
+      }
     }
   </script>
 
